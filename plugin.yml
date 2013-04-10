@@ -1,0 +1,21 @@
+name: RecipeCreator
+version: 0.1
+author: Nathan Fiscaletti
+description: Simple Recipe Creator plugin
+main: com.fiscalleti.recipecreator.RecipeCreator
+commands:
+    createrecipe:
+        description: Creates Recipe
+    removerecipe:
+        description: Removes a recipe
+permissions:
+    recipecreator.shaped:
+        default: op
+        description: creates a shaped recipe
+    recipecreator.shapeless:
+        default: op
+        description: creates a shapeless recipe   
+    recipecreator.remove:
+        default: op
+        description: removes a recipe
+        
