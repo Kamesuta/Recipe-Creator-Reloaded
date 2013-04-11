@@ -1,5 +1,5 @@
 name: RecipeCreator
-version: 0.1
+version: 1.3
 author: Nathan Fiscaletti
 description: Simple Recipe Creator plugin
 main: com.fiscalleti.recipecreator.RecipeCreator
