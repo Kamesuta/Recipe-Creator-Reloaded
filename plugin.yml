@@ -1,21 +1,38 @@
 name: RecipeCreator
-version: 1.3
+version: 1.4
 author: Nathan Fiscaletti
 description: Simple Recipe Creator plugin
 main: com.fiscalleti.recipecreator.RecipeCreator
 commands:
-    createrecipe:
-        description: Creates Recipe
-    removerecipe:
-        description: Removes a recipe
+    recipe:
+        description: Control over system Recipes
+        usage: /recipe add | remove | info | lookup | help | reset | reload | permissions
 permissions:
-    recipecreator.shaped:
+    recipecreator.add.shaped:
         default: op
         description: creates a shaped recipe
-    recipecreator.shapeless:
+    recipecreator.add.shapeless:
         default: op
         description: creates a shapeless recipe   
+    recipecreator.info:
+        default: op
+        description: retrieves a recipes information
+    recipecreator.lookup:
+        default: op
+        description: retrieves an items recipe ids
     recipecreator.remove:
         default: op
         description: removes a recipe
+    recipecreator.reload:
+        default: op
+        description: reloads the recipes
+    recipecreator.reset:
+        default: op
+        description: resets recipes to default
+    recipecreator.recipes.*:
+        default: op
+        description: gives player access to all recipes
+    recipecreator.permissioncontrol:
+        default: op
+        description: gives a player access to permission managment
         

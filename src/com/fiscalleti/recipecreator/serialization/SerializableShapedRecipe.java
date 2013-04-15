@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 
@@ -30,8 +31,9 @@ public class SerializableShapedRecipe implements Serializable{
 		ShapedRecipe s = new ShapedRecipe(this.result.unbox());
 		s.shape(this.shape);
 		for(Character c : this.ingredientMap.keySet()){
-			s.setIngredient(c, this.ingredientMap.get(c).unbox().getType());
+			s.setIngredient(c, this.ingredientMap.get(c).unbox().getData());
 		}
 		return s;
 	}
+	
 }

@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 
 /**
  * A serializable ItemStack
@@ -15,14 +17,17 @@ public class SerializableItemStack implements Serializable {
 
     private final int type, amount;
     private final short damage;
-
+    private final byte data;
     private final Map<SerializableEnchantment, Integer> enchants;
 
     public SerializableItemStack(ItemStack item) {
         this.type = item.getTypeId();
         this.amount = item.getAmount();
+        if((item.getType().getMaxDurability() > 0)){
+        	item.setDurability((short)-1);
+        }
         this.damage = item.getDurability();
-
+        this.data = item.getData().getData();
         this.enchants = new HashMap<SerializableEnchantment, Integer>();
 
         Map<Enchantment, Integer> enchantments = item.getEnchantments();
@@ -42,7 +47,10 @@ public class SerializableItemStack implements Serializable {
         }
 
         item.addUnsafeEnchantments(map);
-
+        if(item.getType().getMaxDurability() > 0){
+        	item.getData().setData(data);
+        }
+        
         return item;
     }
 }

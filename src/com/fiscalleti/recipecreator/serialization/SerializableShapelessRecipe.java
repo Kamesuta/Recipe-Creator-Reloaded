@@ -21,7 +21,7 @@ public class SerializableShapelessRecipe implements Serializable{
 	public ShapelessRecipe unbox(){
 		ShapelessRecipe r = new ShapelessRecipe(this.result.unbox());
 		for(SerializableItemStack i : ingredients){
-			r.addIngredient(i.unbox().getType());
+			r.addIngredient(i.unbox().getData());
 		}
 		return r;
 	}
