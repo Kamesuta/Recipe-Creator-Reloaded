@@ -13,7 +13,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.fiscalleti.recipecreator.serialization.RecipeInformation;
@@ -59,7 +58,6 @@ public class RecipeCreator extends JavaPlugin{
 				
 				return true;
 			}
-			int le = args.length;
 			if(args[0].equalsIgnoreCase("help")){
 				// /recipe help
 				ConcurrentHashMap<String, Boolean> permissable = new ConcurrentHashMap<String, Boolean>();
@@ -129,6 +127,7 @@ public class RecipeCreator extends JavaPlugin{
 					Recipes.createShaped(player);
 					return true;
 				}	
+				return true;
 			}
 			
 			if(args[0].equalsIgnoreCase("remove")){
@@ -161,6 +160,7 @@ public class RecipeCreator extends JavaPlugin{
 					sender.sendMessage(ChatColor.RED + "There was an error while removing that recipe. Does it exist?");
 					return true;
 				}
+				
 			}
 			
 			if(args[0].equalsIgnoreCase("lookup")){
@@ -222,16 +222,15 @@ public class RecipeCreator extends JavaPlugin{
 					sender.sendMessage(ChatColor.RED + "Error: Could not find recipe under recipe ID '" + args[1] + "'.");
 					return true;
 				}
-				
+				//53 max
 				SerializedRecipe r = Recipes.getRecipe(Integer.parseInt(args[1]));
 				sender.sendMessage("");
 				sender.sendMessage(ChatColor.GREEN + "Recipe info for recipe ID '" + ChatColor.YELLOW + args[1] + ChatColor.GREEN + "'");
-				sender.sendMessage(ChatColor.YELLOW + "Output: " + r.getResult().toString());
-				String type = (r.getType() == SerializedRecipe.TYPE_SHAPED) ? "Shaped" : "Shapeless";
-				sender.sendMessage(ChatColor.YELLOW + "Type: " + type);
-				if(r.getType() == SerializedRecipe.TYPE_SHAPED){
-					sender.sendMessage(ChatColor.YELLOW + "Shape: " + Functions.stringArrayToString(r.getShape()));
-				}
+				sender.sendMessage(ChatColor.YELLOW + "Output: " + ChatColor.GREEN + "[" + r.getResult().getType().name() + " x " + r.getResult().getAmount() + "] " + ((r.getResult().getEnchantments().size() > 0) ? ChatColor.BLUE + "[ENCHANTED]" : ""));
+				
+				
+				String type = SerializedRecipe.typeToString(r.getType());
+				sender.sendMessage(ChatColor.YELLOW + "Type: " + ChatColor.GREEN + type);
 				List<ItemStack> ingredients = r.getIngredients();
 				String ing = "";
 				ArrayList<String> already = new ArrayList<String>();
@@ -243,8 +242,9 @@ public class RecipeCreator extends JavaPlugin{
 						}
 					}
 				}
-				sender.sendMessage(ChatColor.YELLOW + "Ingredients: " + ing);
-				sender.sendMessage(ChatColor.YELLOW + "Permission: " + r.permission);
+				sender.sendMessage(ChatColor.YELLOW + "Ingredients: " + ChatColor.GREEN + ing);
+				sender.sendMessage(ChatColor.YELLOW + "Permission: " + ChatColor.GREEN  + r.permission);
+				sender.sendMessage(ChatColor.YELLOW + "Default Bukkit: " + ((r.isDefaultBukkit()) ? ChatColor.GREEN : ChatColor.RED) + r.isDefaultBukkit());
 				return true;
 			}
 			
@@ -258,6 +258,7 @@ public class RecipeCreator extends JavaPlugin{
 				
 				Recipes.regenerateRecipes(new CommandSender[] {sender});
 				Recipes.loadRecipes(new CommandSender[] {sender});
+				return true;
 			}
 			
 			if(args[0].equalsIgnoreCase("reset")){
@@ -271,6 +272,7 @@ public class RecipeCreator extends JavaPlugin{
 				sender.sendMessage(ChatColor.RED + "=== RESETTING ALL RECIPES TO DEFAULT ===");
 				Recipes.resetAllRecipes((sender instanceof Player) ? new CommandSender[] {sender, console} : new CommandSender[] {console});
 				sender.sendMessage(ChatColor.RED + "=== RECIPES RESET TO DEFAULT ===");
+				return true;
 			}
 			
 			if(args[0].equalsIgnoreCase("permissions")){
@@ -296,7 +298,14 @@ public class RecipeCreator extends JavaPlugin{
 					saveConfig();
 					sender.sendMessage(ChatColor.YELLOW + "[RecipeCreator] Permissions "+ChatColor.RED+"disabled!");
 				}
+				return true;
 			}
+			
+			sender.sendMessage(ChatColor.RED + "Bad Command Usage. Type /recipe help");
+			
+			
+			
+			
 			
 		}
 		

@@ -1,8 +1,5 @@
 package com.fiscalleti.recipecreator;
 
-import java.util.List;
-
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 

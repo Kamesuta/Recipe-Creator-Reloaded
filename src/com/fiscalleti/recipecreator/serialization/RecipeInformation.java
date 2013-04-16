@@ -9,7 +9,7 @@ public class RecipeInformation implements Serializable{
 	private boolean generated;
 	
 	public RecipeInformation(){
-		this.version = 4;
+		this.version = 6;
 		this.generated = true;
 	}
 	

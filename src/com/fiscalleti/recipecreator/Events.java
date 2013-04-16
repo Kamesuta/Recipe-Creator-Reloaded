@@ -5,16 +5,15 @@ import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.event.inventory.InventoryType;
 
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 
 public class Events implements Listener{
 	@EventHandler
 	public void onRecipe(CraftItemEvent e){
-		if(RecipeCreator.instance.getConfig().getBoolean("Permissions-Enabled")){
+		InventoryType i;
+		if(RecipeCreator.instance.getConfig().getBoolean("Permissions-Enabled") && (e.getInventory().getType() == InventoryType.WORKBENCH || e.getInventory().getType() == InventoryType.CRAFTING || e.getInventory().getType() == InventoryType.FURNACE)){
 			SerializedRecipe r = null;
 			for(SerializedRecipe rec : Recipes.getRecipes()){
 				if(rec.getResult().getType() == e.getCurrentItem().getType()){

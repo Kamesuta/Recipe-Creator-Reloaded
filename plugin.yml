@@ -1,5 +1,5 @@
 name: RecipeCreator
-version: 1.4
+version: 1.5
 author: Nathan Fiscaletti
 description: Simple Recipe Creator plugin
 main: com.fiscalleti.recipecreator.RecipeCreator
@@ -13,7 +13,7 @@ permissions:
         description: creates a shaped recipe
     recipecreator.add.shapeless:
         default: op
-        description: creates a shapeless recipe   
+        description: creates a shapeless recipe 
     recipecreator.info:
         default: op
         description: retrieves a recipes information
