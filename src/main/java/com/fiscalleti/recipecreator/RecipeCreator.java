@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,19 +13,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.fiscalleti.recipecreator.serialization.RecipeStorage;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
+
+import guava10.com.google.common.collect.Lists;
 
 public class RecipeCreator extends JavaPlugin {
 
 	public static RecipeCreator instance;
 	public ConsoleCommandSender console;
 	public Events events;
+	public RecipeStorage recipestorage;
 
 	@Override
 	public void onEnable() {
 		instance = this;
 		this.console = getServer().getConsoleSender();
 		this.events = new Events();
+		this.recipestorage = RecipeStorage.createRecipesStorage(getDataFolder());
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		getServer().getPluginManager().registerEvents(this.events, this);
@@ -155,8 +161,8 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				final ArrayList<SerializedRecipe> recs = Recipes.getRecipes();
-				final ArrayList<SerializedRecipe> rets = new ArrayList<SerializedRecipe>();
+				final List<SerializedRecipe> recs = RecipeCreator.instance.recipestorage.getRecipes();
+				final List<SerializedRecipe> rets = Lists.newArrayList();
 				for (final SerializedRecipe r : recs)
 					if (r.getResult().getData().getItemType().name().equalsIgnoreCase(args[1])||args[1].equalsIgnoreCase(String.valueOf(r.getResult().getTypeId()))||args[1].equalsIgnoreCase(String.valueOf(r.getResult().getTypeId())+":"+Byte.toString(r.getResult().getData().getData())))
 						rets.add(r);
@@ -189,7 +195,7 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				if (!Functions.isInt(args[1])) {
+				if (!NumberUtils.isNumber(args[1])) {
 					sender.sendMessage(ChatColor.RED+"Error: '"+args[1]+"' is not a valid recipe ID.");
 					return true;
 				}
@@ -199,7 +205,7 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 				//53 max
-				final SerializedRecipe r = Recipes.getRecipe(Integer.parseInt(args[1]));
+				final SerializedRecipe r = RecipeCreator.instance.recipestorage.getRecipe(args[1]);
 				sender.sendMessage("");
 				sender.sendMessage(ChatColor.GREEN+"Recipe info for recipe ID '"+ChatColor.YELLOW+args[1]+ChatColor.GREEN+"'");
 				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+r.getResult().getType().name()+" x "+r.getResult().getAmount()+"] "+(r.getResult().getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));

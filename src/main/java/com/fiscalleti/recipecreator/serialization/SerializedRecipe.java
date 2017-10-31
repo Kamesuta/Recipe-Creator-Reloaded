@@ -21,7 +21,7 @@ public class SerializedRecipe implements Serializable {
 		;
 
 		public final int id;
-		public transient final String name;
+		public final String name;
 
 		private RecipeType(final int id, final String name) {
 			this.id = id;
@@ -41,64 +41,64 @@ public class SerializedRecipe implements Serializable {
 	private RecipeType type;
 	private String id;
 
-	private ShapedRecipe shapedRecipe;
-	private ShapelessRecipe shapelessRecipe;
-	private FurnaceRecipe furnacerecipe;
+	private ShapedRecipe shaped_recipe;
+	private ShapelessRecipe shapeless_recipe;
+	private FurnaceRecipe furnace_recipe;
 
 	public SerializedRecipe(final ShapedRecipe r, final String id) {
-		this.shapedRecipe = r;
+		this.shaped_recipe = r;
 		this.type = RecipeType.SHAPED;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
 	public SerializedRecipe(final ShapelessRecipe r, final String id) {
-		this.shapelessRecipe = r;
+		this.shapeless_recipe = r;
 		this.type = RecipeType.SHAPELESS;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
 	public SerializedRecipe(final FurnaceRecipe r, final String id) {
-		this.furnacerecipe = r;
+		this.furnace_recipe = r;
 		this.type = RecipeType.FURNACE;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
 	public String[] getShape() {
-		return this.type==RecipeType.SHAPED ? this.shapedRecipe.getShape() : null;
+		return this.type==RecipeType.SHAPED ? this.shaped_recipe.getShape() : null;
 	}
 
 	public ItemStack getResult() {
 		switch (this.type) {
 			case FURNACE:
-				return this.furnacerecipe.getResult();
+				return this.furnace_recipe.getResult();
 			case SHAPED:
-				return this.shapedRecipe.getResult();
+				return this.shaped_recipe.getResult();
 			case SHAPELESS:
-				return this.shapelessRecipe.getResult();
+				return this.shapeless_recipe.getResult();
 			default:
 				return null;
 		}
 	}
 
 	public Map<Character, ItemStack> getIngredientMap() {
-		return this.type==RecipeType.SHAPED ? this.shapedRecipe.getIngredientMap() : null;
+		return this.type==RecipeType.SHAPED ? this.shaped_recipe.getIngredientMap() : null;
 	}
 
 	public ArrayList<ItemStack> getIngredients() {
 		final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
 		switch (this.type) {
 			case FURNACE:
-				ret.add(this.furnacerecipe.getInput());
+				ret.add(this.furnace_recipe.getInput());
 				return ret;
 			case SHAPED:
 				for (final Entry<Character, ItemStack> entry : getIngredientMap().entrySet())
 					ret.add(entry.getValue());
 				return ret;
 			case SHAPELESS:
-				ret.addAll(this.shapelessRecipe.getIngredientList());
+				ret.addAll(this.shapeless_recipe.getIngredientList());
 				return ret;
 			default:
 				return null;
@@ -108,11 +108,11 @@ public class SerializedRecipe implements Serializable {
 	public Recipe getRecipe() {
 		switch (this.type) {
 			case FURNACE:
-				return this.furnacerecipe;
+				return this.furnace_recipe;
 			case SHAPED:
-				return this.shapedRecipe;
+				return this.shaped_recipe;
 			case SHAPELESS:
-				return this.shapelessRecipe;
+				return this.shapeless_recipe;
 			default:
 				return null;
 		}

@@ -1,9 +1,9 @@
 package com.fiscalleti.recipecreator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 
 import org.bukkit.ChatColor;
@@ -12,18 +12,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
 import com.fiscalleti.recipecreator.serialization.ObjectHandler;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 
 public class Recipes {
 	public static void createShapeless(final Player p) {
-		createRecipesDirectory();
 		final ArrayList<ItemStack> ingred = new ArrayList<ItemStack>();
 		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
 		ingred.add(p.getInventory().getItem(9)!=null ? p.getInventory().getItem(9) : null);
@@ -49,7 +46,7 @@ public class Recipes {
 			return;
 		}
 
-		final String name = String.valueOf(getRecipes().size());
+		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
 		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
@@ -60,31 +57,14 @@ public class Recipes {
 			return;
 		}
 
-		try {
-			ObjectHandler.write(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class, r2);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		}
+		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
 
-		SerializedRecipe r3 = null;
-		try {
-			r3 = ObjectHandler.read(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class);
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		} catch (final JsonSyntaxException e) {
-			e.printStackTrace();
-		}
-		RecipeCreator.instance.getServer().addRecipe(r3.getRecipe());
-		p.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+r3.getId()+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+r3.getId()+"' created");
+		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
+		p.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+r2.getId()+"' created");
+		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+r2.getId()+"' created");
 	}
 
 	public static void createShaped(final Player p) {
-		createRecipesDirectory();
 		final ItemStack tl = p.getInventory().getItem(9)!=null ? p.getInventory().getItem(9) : new ItemStack(Material.AIR, 1);
 		final ItemStack tm = p.getInventory().getItem(10)!=null ? p.getInventory().getItem(10) : new ItemStack(Material.AIR, 1);
 		final ItemStack tr = p.getInventory().getItem(11)!=null ? p.getInventory().getItem(11) : new ItemStack(Material.AIR, 1);
@@ -126,7 +106,7 @@ public class Recipes {
 		if (br.getType()!=Material.AIR)
 			r.setIngredient('i', br.getData());
 
-		final String name = String.valueOf(getRecipes().size());
+		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
 		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
@@ -137,33 +117,15 @@ public class Recipes {
 			return;
 		}
 
-		try {
-			ObjectHandler.write(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class, r2);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		}
+		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
 
-		SerializedRecipe r3 = null;
-		try {
-			r3 = ObjectHandler.read(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class);
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		} catch (final JsonSyntaxException e) {
-			e.printStackTrace();
-		}
-
-		RecipeCreator.instance.getServer().addRecipe(r3.getRecipe());
-		p.sendMessage(ChatColor.GREEN+"Shaped recipe '"+r3.getId()+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shaped recipe '"+r3.getId()+"' created");
+		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
+		p.sendMessage(ChatColor.GREEN+"Shaped recipe '"+r2.getId()+"' created");
+		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shaped recipe '"+r2.getId()+"' created");
 
 	}
 
 	public static void createFurnace(final Player p) {
-		createRecipesDirectory();
 		ItemStack in = null;
 		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
 		in = p.getInventory().getItem(29)!=null ? p.getInventory().getItem(29) : null;
@@ -177,7 +139,7 @@ public class Recipes {
 			return;
 		}
 
-		final String name = String.valueOf(getRecipes().size());
+		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
 		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
@@ -188,90 +150,18 @@ public class Recipes {
 			return;
 		}
 
-		try {
-			ObjectHandler.write(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class, r2);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		}
+		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
 
-		SerializedRecipe r3 = null;
-		try {
-			r3 = ObjectHandler.read(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), name+".rec"), SerializedRecipe.class);
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (final JsonIOException e) {
-			e.printStackTrace();
-		} catch (final JsonSyntaxException e) {
-			e.printStackTrace();
-		}
-		RecipeCreator.instance.getServer().addRecipe(r3.getRecipe());
-		p.sendMessage(ChatColor.GREEN+"Furnace recipe '"+r3.getId()+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Furnace recipe '"+r3.getId()+"' created");
-	}
-
-	public static ArrayList<SerializedRecipe> getRecipes() {
-		createRecipesDirectory();
-		final ArrayList<SerializedRecipe> ret = new ArrayList<SerializedRecipe>();
-		for (final File recipe : new File(RecipeCreator.instance.getDataFolder(), "recipes").listFiles()) {
-			SerializedRecipe r3 = null;
-			try {
-				r3 = ObjectHandler.read(recipe, SerializedRecipe.class);
-			} catch (final Exception e) {
-
-			}
-			ret.add(r3);
-		}
-		return ret;
-	}
-
-	public static SerializedRecipe getRecipe(final int recipeid) {
-
-		SerializedRecipe ret = null;
-
-		try {
-			ret = ObjectHandler.read(new File(new File(RecipeCreator.instance.getDataFolder(), "recipes"), recipeid+".rec"), SerializedRecipe.class);
-		} catch (final Exception e) {
-
-		}
-
-		return ret;
-
-	}
-
-	public static SerializedRecipe getRecipe(final Recipe r) {
-		if (r instanceof ShapedRecipe) {
-			final ShapedRecipe r2 = (ShapedRecipe) r;
-			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
-				if (r1==r3)
-					return r1;
-			}
-		} else if (r instanceof ShapelessRecipe) {
-			final ShapelessRecipe r2 = (ShapelessRecipe) r;
-
-			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
-				if (r1==r3)
-					return r1;
-			}
-		} else if (r instanceof FurnaceRecipe) {
-			final FurnaceRecipe r2 = (FurnaceRecipe) r;
-			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
-				if (r1==r3)
-					return r1;
-			}
-		}
-		return null;
+		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
+		p.sendMessage(ChatColor.GREEN+"Furnace recipe '"+r2.getId()+"' created");
+		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Furnace recipe '"+r2.getId()+"' created");
 	}
 
 	public static void loadRecipes(final CommandSender[] c) {
 		for (final CommandSender cs : c)
 			cs.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Loading Recipe Files");
 		int count = 0;
-		for (final SerializedRecipe r : getRecipes()) {
+		for (final SerializedRecipe r : RecipeCreator.instance.recipestorage.getRecipes()) {
 			RecipeCreator.instance.getServer().addRecipe(r.getRecipe());
 			count++;
 		}
@@ -280,7 +170,7 @@ public class Recipes {
 	}
 
 	public static boolean recipeExists(final SerializedRecipe r) {
-		final ArrayList<SerializedRecipe> recs = getRecipes();
+		final List<SerializedRecipe> recs = RecipeCreator.instance.recipestorage.getRecipes();
 		boolean ret = false;
 		for (final SerializedRecipe rec : recs)
 			if (rec.getId().equalsIgnoreCase(r.getId())) {
@@ -291,7 +181,7 @@ public class Recipes {
 	}
 
 	public static boolean recipeExists(final String name) {
-		final ArrayList<SerializedRecipe> recs = getRecipes();
+		final List<SerializedRecipe> recs = RecipeCreator.instance.recipestorage.getRecipes();
 		boolean ret = false;
 		for (final SerializedRecipe rec : recs)
 			if (rec.getId().equalsIgnoreCase(name)) {
@@ -320,7 +210,7 @@ public class Recipes {
 		for (final CommandSender sen : s)
 			sen.sendMessage(ChatColor.YELLOW+"[Recipe Creator] Regenerating Recipes..");
 
-		final ArrayList<SerializedRecipe> recs = getRecipes();
+		final List<SerializedRecipe> recs = RecipeCreator.instance.recipestorage.getRecipes();
 
 		for (final ListIterator<SerializedRecipe> itr = recs.listIterator(); itr.hasNext();) {
 			final int index = itr.nextIndex();
@@ -343,12 +233,5 @@ public class Recipes {
 	public static void resetAllRecipes(final CommandSender[] cs) {
 		generateRecipes(cs);
 		loadRecipes(cs);
-	}
-
-	public static void createRecipesDirectory() {
-		if (!RecipeCreator.instance.getDataFolder().exists())
-			RecipeCreator.instance.getDataFolder().mkdir();
-		if (!new File(RecipeCreator.instance.getDataFolder()+File.separator+"recipes").exists())
-			new File(RecipeCreator.instance.getDataFolder()+File.separator+"recipes").mkdir();
 	}
 }
