@@ -3,24 +3,22 @@ package com.fiscalleti.recipecreator.serialization;
 import java.io.Serializable;
 
 import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.ItemStack;
 
-public class SerializableFurnaceRecipe implements Serializable{
-	
-	public static final int type = SerializedRecipe.TYPE_SHAPED;
-	
-	SerializableItemStack input;
-	SerializableItemStack result;
-	
+public class SerializableFurnaceRecipe implements Serializable {
 	private static final long serialVersionUID = 5024505828440280152L;
-	public SerializableFurnaceRecipe(FurnaceRecipe furnaceRecipe){
-		input = new SerializableItemStack(furnaceRecipe.getInput());
-		result = new SerializableItemStack(furnaceRecipe.getResult());
+
+	private ItemStack input;
+	private ItemStack result;
+
+	public SerializableFurnaceRecipe(final FurnaceRecipe furnaceRecipe) {
+		this.input = furnaceRecipe.getInput();
+		this.result = furnaceRecipe.getResult();
 	}
-	
-	public FurnaceRecipe unbox(){
-		FurnaceRecipe r = new FurnaceRecipe(this.result.unbox(), this.result.unbox().getData());
-		r.setInput(this.input.unbox().getData());
+
+	public FurnaceRecipe unbox() {
+		final FurnaceRecipe r = new FurnaceRecipe(this.result, this.result.getData());
+		r.setInput(this.input.getData());
 		return r;
 	}
-	
 }

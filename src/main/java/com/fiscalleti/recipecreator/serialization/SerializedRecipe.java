@@ -3,134 +3,128 @@ package com.fiscalleti.recipecreator.serialization;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
-public class SerializedRecipe implements Serializable{
+public class SerializedRecipe implements Serializable {
 	private static final long serialVersionUID = -996412512091646013L;
-	public static final int TYPE_SHAPELESS = 0;
-	public static final int TYPE_SHAPED = 1;
-	public static final int TYPE_FURNACE = 2;
-	
-	public boolean defaultbukkit;
-	
-	public String permission;
-	
-	private int type;
-	private String id;
-	
-	SerializableShapedRecipe shapedRecipe;
-	SerializableShapelessRecipe shapelessRecipe;
-	SerializableFurnaceRecipe furnacerecipe;
-	
-	public static String typeToString(int typein){
-		if(typein == TYPE_SHAPELESS){
-			return "Shapeless";
-		}else if(typein == TYPE_SHAPED){
-			return "Shaped";
-		}else if(typein == TYPE_FURNACE){
-			return "Furnace";
-		}else{
-			return "Shaped";
+
+	public static enum RecipeType {
+		TYPE_SHAPELESS(0, "Shapeless"),
+		TYPE_SHAPED(1, "Shaped"),
+		TYPE_FURNACE(2, "Furnace"),
+		;
+
+		public final int id;
+		public transient final String name;
+
+		private RecipeType(final int id, final String name) {
+			this.id = id;
+			this.name = name;
 		}
-	}
-	
-	public SerializedRecipe(SerializableShapedRecipe r, String id, boolean defaultbukkit){
-		this.shapedRecipe = r;
-		this.type = SerializedRecipe.TYPE_SHAPED;
-		this.id = id;
-		this.permission = "recipecreator.recipes." + getResult().getType().name();
-		this.defaultbukkit = defaultbukkit;
-	}
-	
-	public SerializedRecipe(SerializableShapelessRecipe r, String id, boolean defaultbukkit){
-		this.shapelessRecipe = r;
-		this.type = SerializedRecipe.TYPE_SHAPELESS;
-		this.id = id;
-		this.permission = "recipecreator.recipes." + getResult().getType().name();
-		this.defaultbukkit = defaultbukkit;
-	}
-	
-	public SerializedRecipe(SerializableFurnaceRecipe r, String id, boolean defaultbukkit){
-		this.furnacerecipe = r;
-		this.type = SerializedRecipe.TYPE_FURNACE;
-		this.id = id;
-		this.permission = "recipecreator.recipes." + getResult().getType().name();
-		this.defaultbukkit = defaultbukkit;
+
+		public static RecipeType fromID(final int id) {
+			for (final RecipeType type : values())
+				if (type.id==id)
+					return type;
+			return TYPE_SHAPED;
+		}
 	}
 
-	public String[] getShape(){
-		return (type == SerializedRecipe.TYPE_SHAPED) ? shapedRecipe.unbox().getShape() : null;
+	public String permission;
+
+	private RecipeType type;
+	private String id;
+
+	private SerializableShapedRecipe shapedRecipe;
+	private SerializableShapelessRecipe shapelessRecipe;
+	private SerializableFurnaceRecipe furnacerecipe;
+
+	public SerializedRecipe(final SerializableShapedRecipe r, final String id) {
+		this.shapedRecipe = r;
+		this.type = RecipeType.TYPE_SHAPED;
+		this.id = id;
+		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
-	
-	public ItemStack getResult(){
-		switch(type){
-			case SerializedRecipe.TYPE_FURNACE:
-				return furnacerecipe.unbox().getResult();
-			case SerializedRecipe.TYPE_SHAPED:
-				return shapedRecipe.unbox().getResult();
-			case SerializedRecipe.TYPE_SHAPELESS:
-				return shapelessRecipe.unbox().getResult();
+
+	public SerializedRecipe(final SerializableShapelessRecipe r, final String id) {
+		this.shapelessRecipe = r;
+		this.type = RecipeType.TYPE_SHAPELESS;
+		this.id = id;
+		this.permission = "recipecreator.recipes."+getResult().getType().name();
+	}
+
+	public SerializedRecipe(final SerializableFurnaceRecipe r, final String id) {
+		this.furnacerecipe = r;
+		this.type = RecipeType.TYPE_FURNACE;
+		this.id = id;
+		this.permission = "recipecreator.recipes."+getResult().getType().name();
+	}
+
+	public String[] getShape() {
+		return this.type==RecipeType.TYPE_SHAPED ? this.shapedRecipe.unbox().getShape() : null;
+	}
+
+	public ItemStack getResult() {
+		switch (this.type) {
+			case TYPE_FURNACE:
+				return this.furnacerecipe.unbox().getResult();
+			case TYPE_SHAPED:
+				return this.shapedRecipe.unbox().getResult();
+			case TYPE_SHAPELESS:
+				return this.shapelessRecipe.unbox().getResult();
 			default:
 				return null;
-		}	
-	}
-	
-	public Map<Character, ItemStack> getIngredientMap(){
-		return (type == SerializedRecipe.TYPE_SHAPED) ? shapedRecipe.unbox().getIngredientMap() : null;
-	}
-	
-	public ArrayList<ItemStack> getIngredients(){
-		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-		switch(type){
-			case SerializedRecipe.TYPE_FURNACE:
-				ret.add(furnacerecipe.unbox().getInput());
-				return ret;
-			case SerializedRecipe.TYPE_SHAPED:
-				for(Character i : getIngredientMap().keySet()){
-					ret.add(getIngredientMap().get(i));
-				}
-				return ret;
-			case SerializedRecipe.TYPE_SHAPELESS:
-				for(ItemStack i : shapelessRecipe.unbox().getIngredientList()){
-					ret.add(i);
-				}
-				return ret;
-		    default:
-		    	return null;
 		}
 	}
-	
-	public Recipe getRecipe(){
-		switch (type){
-			case SerializedRecipe.TYPE_FURNACE:
-				return furnacerecipe.unbox();
-			case SerializedRecipe.TYPE_SHAPED:
-				return shapedRecipe.unbox();
-			case SerializedRecipe.TYPE_SHAPELESS:
-				return shapelessRecipe.unbox();
-		    default:
-		    	return null;
+
+	public Map<Character, ItemStack> getIngredientMap() {
+		return this.type==RecipeType.TYPE_SHAPED ? this.shapedRecipe.unbox().getIngredientMap() : null;
+	}
+
+	public ArrayList<ItemStack> getIngredients() {
+		final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+		switch (this.type) {
+			case TYPE_FURNACE:
+				ret.add(this.furnacerecipe.unbox().getInput());
+				return ret;
+			case TYPE_SHAPED:
+				for (final Entry<Character, ItemStack> entry : getIngredientMap().entrySet())
+					ret.add(entry.getValue());
+				return ret;
+			case TYPE_SHAPELESS:
+				ret.addAll(this.shapelessRecipe.unbox().getIngredientList());
+				return ret;
+			default:
+				return null;
+		}
+	}
+
+	public Recipe getRecipe() {
+		switch (this.type) {
+			case TYPE_FURNACE:
+				return this.furnacerecipe.unbox();
+			case TYPE_SHAPED:
+				return this.shapedRecipe.unbox();
+			case TYPE_SHAPELESS:
+				return this.shapelessRecipe.unbox();
+			default:
+				return null;
 		}
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
-	public void setId(String id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 
-	public int getType() {
-		return type;
+	public RecipeType getType() {
+		return this.type;
 	}
-
-	public boolean isDefaultBukkit(){
-		return this.defaultbukkit;
-	}
-	
 
 }

@@ -2,38 +2,37 @@ package com.fiscalleti.recipecreator.serialization;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map.Entry;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 
-public class SerializableShapedRecipe implements Serializable{
+import guava10.com.google.common.collect.Maps;
+
+public class SerializableShapedRecipe implements Serializable {
 	private static final long serialVersionUID = 3801078178397385670L;
-	String[] shape;
-	Map<Character, SerializableItemStack> ingredientMap;
-	SerializableItemStack result;
-	public SerializableShapedRecipe(ShapedRecipe recipe){
+	private String[] shape;
+	private Map<Character, ItemStack> ingredients = Maps.newHashMap();
+	private ItemStack result;
+
+	public SerializableShapedRecipe(final ShapedRecipe recipe) {
 		this.shape = recipe.getShape();
-		ConcurrentHashMap<Character, SerializableItemStack> m = new ConcurrentHashMap<Character, SerializableItemStack>();
-		for(Character c : recipe.getIngredientMap().keySet()){
-			ItemStack ing = recipe.getIngredientMap().get(c);
-			if(ing != null){
-				SerializableItemStack i = new SerializableItemStack(ing);
-				m.put(c, i);
+		for (final Entry<Character, ItemStack> entry : recipe.getIngredientMap().entrySet()) {
+			final ItemStack ingredient = entry.getValue();
+			if (ingredient!=null) {
+				final Character key = entry.getKey();
+				this.ingredients.put(key, ingredient);
 			}
 		}
-		this.ingredientMap = m;
-		this.result = new SerializableItemStack(recipe.getResult());
+
+		this.result = recipe.getResult();
 	}
-	
-	public ShapedRecipe unbox(){
-		ShapedRecipe s = new ShapedRecipe(this.result.unbox());
-		s.shape(this.shape);
-		for(Character c : this.ingredientMap.keySet()){
-			s.setIngredient(c, this.ingredientMap.get(c).unbox().getData());
-		}
-		return s;
+
+	public ShapedRecipe unbox() {
+		final ShapedRecipe recipe = new ShapedRecipe(this.result);
+		recipe.shape(this.shape);
+		for (final Character key : this.ingredients.keySet())
+			recipe.setIngredient(key, this.ingredients.get(key).getData());
+		return recipe;
 	}
-	
 }
