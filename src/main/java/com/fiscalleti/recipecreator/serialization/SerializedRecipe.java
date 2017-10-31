@@ -5,16 +5,19 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 
 public class SerializedRecipe implements Serializable {
 	private static final long serialVersionUID = -996412512091646013L;
 
 	public static enum RecipeType {
-		TYPE_SHAPELESS(0, "Shapeless"),
-		TYPE_SHAPED(1, "Shaped"),
-		TYPE_FURNACE(2, "Furnace"),
+		SHAPELESS(0, "Shapeless"),
+		SHAPED(1, "Shaped"),
+		FURNACE(2, "Furnace"),
 		;
 
 		public final int id;
@@ -29,7 +32,7 @@ public class SerializedRecipe implements Serializable {
 			for (final RecipeType type : values())
 				if (type.id==id)
 					return type;
-			return TYPE_SHAPED;
+			return SHAPED;
 		}
 	}
 
@@ -38,64 +41,64 @@ public class SerializedRecipe implements Serializable {
 	private RecipeType type;
 	private String id;
 
-	private SerializableShapedRecipe shapedRecipe;
-	private SerializableShapelessRecipe shapelessRecipe;
-	private SerializableFurnaceRecipe furnacerecipe;
+	private ShapedRecipe shapedRecipe;
+	private ShapelessRecipe shapelessRecipe;
+	private FurnaceRecipe furnacerecipe;
 
-	public SerializedRecipe(final SerializableShapedRecipe r, final String id) {
+	public SerializedRecipe(final ShapedRecipe r, final String id) {
 		this.shapedRecipe = r;
-		this.type = RecipeType.TYPE_SHAPED;
+		this.type = RecipeType.SHAPED;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
-	public SerializedRecipe(final SerializableShapelessRecipe r, final String id) {
+	public SerializedRecipe(final ShapelessRecipe r, final String id) {
 		this.shapelessRecipe = r;
-		this.type = RecipeType.TYPE_SHAPELESS;
+		this.type = RecipeType.SHAPELESS;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
-	public SerializedRecipe(final SerializableFurnaceRecipe r, final String id) {
+	public SerializedRecipe(final FurnaceRecipe r, final String id) {
 		this.furnacerecipe = r;
-		this.type = RecipeType.TYPE_FURNACE;
+		this.type = RecipeType.FURNACE;
 		this.id = id;
 		this.permission = "recipecreator.recipes."+getResult().getType().name();
 	}
 
 	public String[] getShape() {
-		return this.type==RecipeType.TYPE_SHAPED ? this.shapedRecipe.unbox().getShape() : null;
+		return this.type==RecipeType.SHAPED ? this.shapedRecipe.getShape() : null;
 	}
 
 	public ItemStack getResult() {
 		switch (this.type) {
-			case TYPE_FURNACE:
-				return this.furnacerecipe.unbox().getResult();
-			case TYPE_SHAPED:
-				return this.shapedRecipe.unbox().getResult();
-			case TYPE_SHAPELESS:
-				return this.shapelessRecipe.unbox().getResult();
+			case FURNACE:
+				return this.furnacerecipe.getResult();
+			case SHAPED:
+				return this.shapedRecipe.getResult();
+			case SHAPELESS:
+				return this.shapelessRecipe.getResult();
 			default:
 				return null;
 		}
 	}
 
 	public Map<Character, ItemStack> getIngredientMap() {
-		return this.type==RecipeType.TYPE_SHAPED ? this.shapedRecipe.unbox().getIngredientMap() : null;
+		return this.type==RecipeType.SHAPED ? this.shapedRecipe.getIngredientMap() : null;
 	}
 
 	public ArrayList<ItemStack> getIngredients() {
 		final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
 		switch (this.type) {
-			case TYPE_FURNACE:
-				ret.add(this.furnacerecipe.unbox().getInput());
+			case FURNACE:
+				ret.add(this.furnacerecipe.getInput());
 				return ret;
-			case TYPE_SHAPED:
+			case SHAPED:
 				for (final Entry<Character, ItemStack> entry : getIngredientMap().entrySet())
 					ret.add(entry.getValue());
 				return ret;
-			case TYPE_SHAPELESS:
-				ret.addAll(this.shapelessRecipe.unbox().getIngredientList());
+			case SHAPELESS:
+				ret.addAll(this.shapelessRecipe.getIngredientList());
 				return ret;
 			default:
 				return null;
@@ -104,12 +107,12 @@ public class SerializedRecipe implements Serializable {
 
 	public Recipe getRecipe() {
 		switch (this.type) {
-			case TYPE_FURNACE:
-				return this.furnacerecipe.unbox();
-			case TYPE_SHAPED:
-				return this.shapedRecipe.unbox();
-			case TYPE_SHAPELESS:
-				return this.shapelessRecipe.unbox();
+			case FURNACE:
+				return this.furnacerecipe;
+			case SHAPED:
+				return this.shapedRecipe;
+			case SHAPELESS:
+				return this.shapelessRecipe;
 			default:
 				return null;
 		}

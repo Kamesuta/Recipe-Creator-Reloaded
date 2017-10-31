@@ -17,9 +17,6 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
 import com.fiscalleti.recipecreator.serialization.ObjectHandler;
-import com.fiscalleti.recipecreator.serialization.SerializableFurnaceRecipe;
-import com.fiscalleti.recipecreator.serialization.SerializableShapedRecipe;
-import com.fiscalleti.recipecreator.serialization.SerializableShapelessRecipe;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
@@ -54,8 +51,7 @@ public class Recipes {
 
 		final String name = String.valueOf(getRecipes().size());
 
-		final SerializableShapelessRecipe r1 = new SerializableShapelessRecipe(r);
-		final SerializedRecipe r2 = new SerializedRecipe(r1, name);
+		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
 		regenerateRecipes(new CommandSender[] { p, RecipeCreator.instance.console });
 
@@ -132,8 +128,7 @@ public class Recipes {
 
 		final String name = String.valueOf(getRecipes().size());
 
-		final SerializableShapedRecipe r1 = new SerializableShapedRecipe(r);
-		final SerializedRecipe r2 = new SerializedRecipe(r1, name);
+		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
 		regenerateRecipes(new CommandSender[] { p, RecipeCreator.instance.console });
 
@@ -184,8 +179,7 @@ public class Recipes {
 
 		final String name = String.valueOf(getRecipes().size());
 
-		final SerializableFurnaceRecipe r1 = new SerializableFurnaceRecipe(r);
-		final SerializedRecipe r2 = new SerializedRecipe(r1, name);
+		final SerializedRecipe r2 = new SerializedRecipe(r, name);
 
 		regenerateRecipes(new CommandSender[] { p, RecipeCreator.instance.console });
 
@@ -250,7 +244,7 @@ public class Recipes {
 		if (r instanceof ShapedRecipe) {
 			final ShapedRecipe r2 = (ShapedRecipe) r;
 			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(new SerializableShapedRecipe(r2), r1.getId());
+				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
 				if (r1==r3)
 					return r1;
 			}
@@ -258,14 +252,14 @@ public class Recipes {
 			final ShapelessRecipe r2 = (ShapelessRecipe) r;
 
 			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(new SerializableShapelessRecipe(r2), r1.getId());
+				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
 				if (r1==r3)
 					return r1;
 			}
 		} else if (r instanceof FurnaceRecipe) {
 			final FurnaceRecipe r2 = (FurnaceRecipe) r;
 			for (final SerializedRecipe r1 : getRecipes()) {
-				final SerializedRecipe r3 = new SerializedRecipe(new SerializableFurnaceRecipe(r2), r1.getId());
+				final SerializedRecipe r3 = new SerializedRecipe(r2, r1.getId());
 				if (r1==r3)
 					return r1;
 			}
