@@ -33,46 +33,46 @@ public class Recipes {
 		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
 		ingred.add((p.getInventory().getItem(9) != null) ? p.getInventory().getItem(9) : null);
 		ingred.add((p.getInventory().getItem(10) != null) ? p.getInventory().getItem(10) : null);
-		
+
 		ingred.add((p.getInventory().getItem(18) != null) ? p.getInventory().getItem(18) : null);
 		ingred.add((p.getInventory().getItem(19) != null) ? p.getInventory().getItem(19) : null);
-		
+
 		ItemStack out = (p.getInventory().getItem(17) != null) ? p.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
-		
+
 		ShapelessRecipe r = new ShapelessRecipe(out);
-		
+
 		boolean empty = true;
-		
+
 		for(ItemStack m : ingred){
 			if(m != null){
 				r.addIngredient(m.getData());
 				empty = false;
 			}
 		}
-		
+
 		if(empty || out.getType() == Material.AIR){
 			p.sendMessage(ChatColor.RED + "Bad recipe contruction in inventory");
 			return;
 		}
-		
+
 		String name = String.valueOf(getRecipes().size());
-		
+
 		SerializableShapelessRecipe r1 = new SerializableShapelessRecipe(r);
 		SerializedRecipe r2 = new SerializedRecipe(r1, name, false);
-		
+
 		regenerateRecipes(new CommandSender[] {p, RecipeCreator.instance.console});
-		
+
 		if(recipeExists(r2)){
 			p.sendMessage(ChatColor.RED + "A recipe with that name or result already exists");
 			return;
 		}
-		
+
 		try {
 			ObjectHandler.write(r2, RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		SerializedRecipe r3 = null;
 		try {
 			r3 = (SerializedRecipe)ObjectHandler.read(RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
@@ -87,31 +87,31 @@ public class Recipes {
 		p.sendMessage(ChatColor.GREEN + "Shapeless recipe '"+r3.getId()+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN + "Shapeless recipe '"+r3.getId()+"' created");
 	}
-	
+
 	public static void createShaped(Player p){
 		createRecipesDirectory();
 		ItemStack tl = (p.getInventory().getItem(9) != null) ? p.getInventory().getItem(9) : new ItemStack(Material.AIR, 1);
 		ItemStack tm = (p.getInventory().getItem(10) != null) ? p.getInventory().getItem(10) : new ItemStack(Material.AIR, 1);
 		ItemStack tr = (p.getInventory().getItem(11) != null) ? p.getInventory().getItem(11) : new ItemStack(Material.AIR, 1);
-		
+
 		ItemStack ml = (p.getInventory().getItem(18) != null) ? p.getInventory().getItem(18) : new ItemStack(Material.AIR, 1);
 		ItemStack mm = (p.getInventory().getItem(19) != null) ? p.getInventory().getItem(19) : new ItemStack(Material.AIR, 1);
 		ItemStack mr = (p.getInventory().getItem(20) != null) ? p.getInventory().getItem(20) : new ItemStack(Material.AIR, 1);
-		
+
 		ItemStack bl = (p.getInventory().getItem(27) != null) ? p.getInventory().getItem(27) : new ItemStack(Material.AIR, 1);
 		ItemStack bm = (p.getInventory().getItem(28) != null) ? p.getInventory().getItem(28) : new ItemStack(Material.AIR, 1);
 		ItemStack br = (p.getInventory().getItem(29) != null) ? p.getInventory().getItem(29) : new ItemStack(Material.AIR, 1);
-		
+
 		ItemStack out = (p.getInventory().getItem(17) != null) ? p.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
-		
+
 		if((tl.getType() == Material.AIR && tm.getType() == Material.AIR && tr.getType() == Material.AIR && ml.getType() == Material.AIR && mm.getType() == Material.AIR && mr.getType() == Material.AIR && bl.getType() == Material.AIR && bm.getType() == Material.AIR && br.getType() == Material.AIR) || out.getType() == Material.AIR){
 			p.sendMessage(ChatColor.RED + "Bad recipe contruction in inventory");
 			return;
 		}
-		
+
 		ShapedRecipe r = new ShapedRecipe(out);
 		r.shape(new String[] {"abc", "def", "ghi"});
-		
+
 		if(tl.getType() != Material.AIR){
 			r.setIngredient('a', tl.getData());
 		}
@@ -139,25 +139,25 @@ public class Recipes {
 		if(br.getType() != Material.AIR){
 			r.setIngredient('i', br.getData());
 		}
-		
+
 		String name = String.valueOf(getRecipes().size());
-		
+
 		SerializableShapedRecipe r1 = new SerializableShapedRecipe(r);
 		SerializedRecipe r2 = new SerializedRecipe(r1, name, false);
-		
+
 		regenerateRecipes(new CommandSender[] {p, RecipeCreator.instance.console});
-		
+
 		if(recipeExists(r2)){
 			p.sendMessage(ChatColor.RED + "A recipe with that name or result already exists");
 			return;
 		}
-		
+
 		try {
 			ObjectHandler.write(r2, RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		SerializedRecipe r3 = null;
 		try {
 			r3 = (SerializedRecipe)ObjectHandler.read(RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
@@ -168,48 +168,48 @@ public class Recipes {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		RecipeCreator.instance.getServer().addRecipe(r3.getRecipe());
 		p.sendMessage(ChatColor.GREEN + "Shaped recipe '"+r3.getId()+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN + "Shaped recipe '"+r3.getId()+"' created");
-		
+
 	}
-	
+
 	public static void createFurnace(Player p){
 		createRecipesDirectory();
 		ItemStack in = null;
 		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
 		in = (p.getInventory().getItem(29) != null) ? p.getInventory().getItem(29) : null;
-		
+
 		ItemStack out = (p.getInventory().getItem(17) != null) ? p.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
-		
+
 		FurnaceRecipe r = new FurnaceRecipe(out, out.getData());
-		
-		
-		
+
+
+
 		if(in == null || out.getType() == Material.AIR){
 			p.sendMessage(ChatColor.RED + "Bad recipe contruction in inventory");
 			return;
 		}
-		
+
 		String name = String.valueOf(getRecipes().size());
-		
+
 		SerializableFurnaceRecipe r1 = new SerializableFurnaceRecipe(r);
 		SerializedRecipe r2 = new SerializedRecipe(r1, name, false);
-		
+
 		regenerateRecipes(new CommandSender[] {p, RecipeCreator.instance.console});
-		
+
 		if(recipeExists(r2)){
 			p.sendMessage(ChatColor.RED + "A recipe with that name or result already exists");
 			return;
 		}
-		
+
 		try {
 			ObjectHandler.write(r2, RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		SerializedRecipe r3 = null;
 		try {
 			r3 = (SerializedRecipe)ObjectHandler.read(RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec");
@@ -224,7 +224,7 @@ public class Recipes {
 		p.sendMessage(ChatColor.GREEN + "Furnace recipe '"+r3.getId()+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN + "Furnace recipe '"+r3.getId()+"' created");
 	}
-	
+
 	public static ArrayList<SerializedRecipe> getRecipes(){
 		createRecipesDirectory();
 		ArrayList<SerializedRecipe> ret = new ArrayList<SerializedRecipe>();
@@ -233,28 +233,28 @@ public class Recipes {
 			try {
 				r3 = (SerializedRecipe)ObjectHandler.read(recipe.getPath());
 			} catch (Exception e){
-				
+
 			}
 			ret.add(r3);
 		}
 		return ret;
 	}
-	
+
 	public static SerializedRecipe getRecipe(int recipeid){
-		
+
 		SerializedRecipe ret = null;
-	
+
 			try {
 				ret = (SerializedRecipe)ObjectHandler.read(RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + String.valueOf(recipeid) + ".rec");
 			} catch (Exception e){
-				
+
 			}
-			
-			
+
+
 		return ret;
-	
+
 	}
-	
+
 	public static SerializedRecipe getRecipe(Recipe r, boolean defaultbukkit){
 		SerializedRecipe ret = null;
 		if(r instanceof ShapedRecipe){
@@ -268,7 +268,7 @@ public class Recipes {
 			}
 		}else if(r instanceof ShapelessRecipe){
 			ShapelessRecipe r2 = (ShapelessRecipe)r;
-			
+
 			for(SerializedRecipe r1 : getRecipes()){
 				SerializedRecipe r3 = new SerializedRecipe(new SerializableShapelessRecipe(r2), r1.getId(), defaultbukkit);
 				if(r1 == r3){
@@ -287,9 +287,9 @@ public class Recipes {
 			}
 		}
 		return ret;
-		
+
 	}
-	
+
 	public static void loadRecipes(CommandSender[] c){
 		for(CommandSender cs : c){
 			cs.sendMessage(ChatColor.YELLOW + "[RecipeCreator] Loading Recipe Files");
@@ -303,7 +303,7 @@ public class Recipes {
 			cs.sendMessage(ChatColor.YELLOW + "[RecipeCreator] Done Loading Recipe Files! (" + count + " Recipes)");
 		}
 	}
-	
+
 	public static boolean recipeExists(SerializedRecipe r){
 		ArrayList<SerializedRecipe> recs = getRecipes();
 		boolean ret = false;
@@ -315,7 +315,7 @@ public class Recipes {
 		}
 		return ret;
 	}
-	
+
 	public static boolean recipeExists(String name){
 		ArrayList<SerializedRecipe> recs = getRecipes();
 		boolean ret = false;
@@ -327,7 +327,7 @@ public class Recipes {
 		}
 		return ret;
 	}
-	
+
 	public static boolean removeRecipe(String name, CommandSender[] s){
 		boolean removed = new File(RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + name + ".rec").delete();
 		RecipeCreator.instance.getServer().clearRecipes();
@@ -335,7 +335,8 @@ public class Recipes {
 		loadRecipes(s);
 		return removed;
 	}
-	
+
+	/*
 	public static ArrayList<Recipe> getDefaultBukkitRecipes(){
 		OutputStream real = System.out;
 		System.setOut(new PrintStream(new NullOutputStream()));
@@ -349,11 +350,13 @@ public class Recipes {
 		}
 		return recipes;
 	}
-	
+	*/
+
 	public static void generateRecipes(CommandSender[] c){
 		for(CommandSender cs : c){
 			cs.sendMessage(ChatColor.YELLOW + "[RecipeCreator] Generating Recipe Files");
 		}
+		/*
 		ArrayList<Recipe> defaultbukkit = getDefaultBukkitRecipes();
 		for(Recipe r : defaultbukkit){
 			SerializedRecipe sr1 = null;
@@ -371,13 +374,14 @@ public class Recipes {
 				try{
 					ObjectHandler.write(sr1, RecipeCreator.instance.getDataFolder() + File.separator + "recipes" + File.separator + sr1.getId() + ".rec");
 				}catch(IOException E){
-					
-				
+
+
 				}
 			}
 			//c3
-			/* a443(anont); */
+			// a443(anont);
 		}
+		*/
 		try {
 			ObjectHandler.write(new RecipeInformation(), RecipeCreator.instance.getDataFolder() + File.separator + "generated.dat");
 		} catch (IOException e) {
@@ -388,18 +392,18 @@ public class Recipes {
 			cs.sendMessage(ChatColor.YELLOW + "[RecipeCreator] Done Generating Recipe Files!");
 		}
 	}
-	
+
 	public static void regenerateRecipes(CommandSender[] s){
 		for(CommandSender sen : s){
 			sen.sendMessage(ChatColor.YELLOW + "[Recipe Creator] Regenerating Recipes..");
 		}
-		
+
 		ArrayList<SerializedRecipe> recs = getRecipes();
 		int i = 0;
 		int count = countRecipes();
-		
+
 		deleteAllRecipes();
-		
+
 		for(i=0;i<count;i++){
 			SerializedRecipe rec = recs.get(i);
 			rec.setId(String.valueOf(i));
@@ -411,18 +415,18 @@ public class Recipes {
 				}
 			}
 		}
-		
+
 		for(CommandSender sen : s){
 			sen.sendMessage(ChatColor.YELLOW + "[Recipe Creator] Done Regenerating Recipes!");
 		}
 	}
-	
+
 	public static void resetAllRecipes(CommandSender[] cs){
 		deleteAllRecipes();
 		generateRecipes(cs);
 		loadRecipes(cs);
 	}
-	
+
 	public static void deleteAllRecipes(){
 		if(!new File(RecipeCreator.instance.getDataFolder() + File.separator + "recipes").exists()){
 			return;
@@ -434,7 +438,7 @@ public class Recipes {
 	public static int countRecipes(){
 		return new File(RecipeCreator.instance.getDataFolder() + File.separator + "recipes").listFiles().length;
 	}
-	
+
 	public static boolean defaultsGenerated(){
 		boolean ret = false;
 		if(!new File(RecipeCreator.instance.getDataFolder() + File.separator + "generated.dat").exists()){
@@ -454,7 +458,7 @@ public class Recipes {
 		}
 		return ret;
 	}
-	
+
 	public static int getRecipeVersion(){
 		int ret = 0;
 		if(!new File(RecipeCreator.instance.getDataFolder() + File.separator + "generated.dat").exists()){
@@ -474,7 +478,7 @@ public class Recipes {
 		}
 		return ret;
 	}
-	
+
 	public static void createRecipesDirectory(){
 		if(!RecipeCreator.instance.getDataFolder().exists()){
 			RecipeCreator.instance.getDataFolder().mkdir();
@@ -483,8 +487,8 @@ public class Recipes {
 			new File(RecipeCreator.instance.getDataFolder() + File.separator + "recipes").mkdir();
 		}
 	}
-	
-	
+
+
 	private static class NullOutputStream extends OutputStream {
 	    @Override
 	    public void write(int b){

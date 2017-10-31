@@ -37,7 +37,7 @@ public class RecipeCreator extends JavaPlugin{
 		if(!getDataFolder().exists()){
 			getDataFolder().mkdir();
 		}
-		getServer().clearRecipes();
+		// getServer().clearRecipes();
 		if(!Recipes.defaultsGenerated() || Recipes.getRecipeVersion() != new RecipeInformation().getVersion()){
 			Recipes.deleteAllRecipes();
 			Recipes.generateRecipes(new CommandSender[] {console});
