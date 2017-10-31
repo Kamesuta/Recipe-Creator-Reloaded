@@ -12,5 +12,6 @@
 !.travis.yml
 !settings.xml
 !pom.tmp
+!pom.xml
 !LICENSE
 !README.md
