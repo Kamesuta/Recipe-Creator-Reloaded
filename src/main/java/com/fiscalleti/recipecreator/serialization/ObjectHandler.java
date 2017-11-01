@@ -52,28 +52,32 @@ public class ObjectHandler {
 	public static class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
 		@Override
 		public void write(final JsonWriter out, final ItemStack value) throws IOException {
-			out.beginObject();
-
-			out.name("type").value(value.getType().name());
-
-			final int durability = value.getDurability();
-			if (durability!=0)
-				out.name("damage").value(durability);
-
-			final int amount = value.getAmount();
-			if (amount!=1)
-				out.name("amount").value(amount);
-
-			final Map<Enchantment, Integer> enchants = value.getEnchantments();
-			if (!enchants.isEmpty()) {
-				out.name("enchants");
+			if (value==null)
+				out.nullValue();
+			else {
 				out.beginObject();
-				for (final Entry<Enchantment, Integer> entry : enchants.entrySet())
-					out.name(entry.getKey().getName()).value(entry.getValue());
+
+				out.name("type").value(value.getType().name());
+
+				final int durability = value.getDurability();
+				if (durability!=0)
+					out.name("damage").value(durability);
+
+				final int amount = value.getAmount();
+				if (amount!=1)
+					out.name("amount").value(amount);
+
+				final Map<Enchantment, Integer> enchants = value.getEnchantments();
+				if (!enchants.isEmpty()) {
+					out.name("enchants");
+					out.beginObject();
+					for (final Entry<Enchantment, Integer> entry : enchants.entrySet())
+						out.name(entry.getKey().getName()).value(entry.getValue());
+					out.endObject();
+				}
+
 				out.endObject();
 			}
-
-			out.endObject();
 		}
 
 		@Override

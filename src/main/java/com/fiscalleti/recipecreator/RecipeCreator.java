@@ -3,6 +3,7 @@ package com.fiscalleti.recipecreator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.ChatColor;
@@ -21,6 +22,7 @@ import guava10.com.google.common.collect.Lists;
 public class RecipeCreator extends JavaPlugin {
 
 	public static RecipeCreator instance;
+	public Logger log;
 	public ConsoleCommandSender console;
 	public Events events;
 	public RecipeStorage recipestorage;
@@ -28,6 +30,7 @@ public class RecipeCreator extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		instance = this;
+		this.log = getLogger();
 		this.console = getServer().getConsoleSender();
 		this.events = new Events();
 		this.recipestorage = RecipeStorage.createRecipesStorage(getDataFolder());

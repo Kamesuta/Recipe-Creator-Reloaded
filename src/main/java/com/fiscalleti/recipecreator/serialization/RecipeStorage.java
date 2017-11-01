@@ -2,7 +2,9 @@ package com.fiscalleti.recipecreator.serialization;
 
 import java.io.File;
 import java.util.List;
+import java.util.logging.Level;
 
+import com.fiscalleti.recipecreator.RecipeCreator;
 import com.google.common.collect.Lists;
 
 public class RecipeStorage {
@@ -34,7 +36,7 @@ public class RecipeStorage {
 		try {
 			ObjectHandler.write(file, SerializedRecipe.class, recipe);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			RecipeCreator.instance.log.log(Level.WARNING, e.getMessage(), e);
 		}
 	}
 
@@ -42,7 +44,7 @@ public class RecipeStorage {
 		try {
 			return ObjectHandler.read(file, SerializedRecipe.class);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			RecipeCreator.instance.log.log(Level.WARNING, e.getMessage(), e);
 		}
 		return null;
 	}
