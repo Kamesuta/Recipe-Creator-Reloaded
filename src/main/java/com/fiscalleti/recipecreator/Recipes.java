@@ -137,8 +137,30 @@ public class Recipes {
 	}
 
 	private static Character[][] trimShape(final Character[][] shape) {
-
-		return shape;
+		int sx = 0;
+		int sy = 0;
+		int vx = -1;
+		int vy = -1;
+		for (int i = 0; i<shape.length; i++)
+			for (int j = 0; j<shape[0].length; j++) {
+				if (!Character.isWhitespace(shape[i][j])) {
+					if (vx<0)
+						vx = i;
+					sx = Math.max(sx, i+1-vx);
+				}
+				if (!Character.isWhitespace(shape[j][i])) {
+					if (vy<0)
+						vy = i;
+					sy = Math.max(sy, i+1-vy);
+				}
+			}
+		if (sx==shape.length&&sy==shape.length)
+			return shape;
+		final Character[][] trimed = new Character[sx][sy];
+		for (int i = 0; i<sx; i++)
+			for (int j = 0; j<sy; j++)
+				trimed[i][j] = shape[i+vx][j+vy];
+		return trimed;
 	}
 
 	public static void createFurnace(final Player player) {
