@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -60,7 +61,7 @@ public class Recipes {
 		return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
 	}
 
-	public static void createShaped(final Player player) {
+	public static void createShaped(final Player player, final boolean trim) {
 		final Map<Character, MaterialData> map = Maps.newHashMap();
 
 		map.put('a', item(player, 9).getData());
@@ -107,11 +108,20 @@ public class Recipes {
 				charmap.put(key, ' ');
 		}
 
-		recipe.shape(new String[] {
-				""+charmap.get('a')+charmap.get('b')+charmap.get('c'),
-				""+charmap.get('d')+charmap.get('e')+charmap.get('f'),
-				""+charmap.get('g')+charmap.get('h')+charmap.get('i'),
-		});
+		Character[][] shape = new Character[][] {
+				new Character[] { charmap.get('a'), charmap.get('b'), charmap.get('c') },
+				new Character[] { charmap.get('d'), charmap.get('e'), charmap.get('f') },
+				new Character[] { charmap.get('g'), charmap.get('h'), charmap.get('i') },
+		};
+
+		if (trim)
+			shape = trimShape(shape);
+
+		final String[] shapestr = new String[shape.length];
+		for (int i = 0; i<shape.length; i++)
+			shapestr[i] = StringUtils.join(shape[i]);
+
+		recipe.shape(shapestr);
 
 		for (final Entry<Character, MaterialData> ingred : ingreds.entrySet())
 			recipe.setIngredient(ingred.getKey(), ingred.getValue());
@@ -124,6 +134,11 @@ public class Recipes {
 		player.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
 
+	}
+
+	private static Character[][] trimShape(final Character[][] shape) {
+
+		return shape;
 	}
 
 	public static void createFurnace(final Player player) {

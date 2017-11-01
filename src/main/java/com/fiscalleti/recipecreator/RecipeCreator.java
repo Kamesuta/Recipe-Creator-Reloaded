@@ -111,12 +111,12 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				if (type.equalsIgnoreCase("shaped")) {
+				if (type.equalsIgnoreCase("shaped")||type.equalsIgnoreCase("trimshaped")) {
 					if (!player.hasPermission("recipecreator.add.shaped")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					Recipes.createShaped(player);
+					Recipes.createShaped(player, type.equalsIgnoreCase("trimshaped"));
 					return true;
 				}
 				return true;
