@@ -25,6 +25,7 @@ public class RecipeCreator extends JavaPlugin {
 	public ConsoleCommandSender console;
 	public Events events;
 	public RecipeStorage recipestorage;
+	public RecipeRegistrar reciperegistrar;
 
 	@Override
 	public void onEnable() {
@@ -33,6 +34,7 @@ public class RecipeCreator extends JavaPlugin {
 		this.console = getServer().getConsoleSender();
 		this.events = new Events();
 		this.recipestorage = RecipeStorage.createRecipesStorage(getDataFolder());
+		this.reciperegistrar = new RecipeRegistrar(getServer());
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		getServer().getPluginManager().registerEvents(this.events, this);
@@ -129,14 +131,6 @@ public class RecipeCreator extends JavaPlugin {
 
 				if (!(args.length>1)) {
 					sender.sendMessage(ChatColor.RED+"Usage: /recipe remove <recipe-id / ALL>");
-					return true;
-				}
-
-				if (args[1].equalsIgnoreCase("ALL")) {
-					sender.sendMessage(ChatColor.RED+"=== REMOVING ALL RECIPES FROM SYSTEM ===");
-					RecipeCreator.instance.getServer().clearRecipes();
-					Recipes.loadRecipes(ChatOutput.create(this.console, sender));
-					sender.sendMessage(ChatColor.RED+"=== ALL RECIPES REMOVED ===");
 					return true;
 				}
 

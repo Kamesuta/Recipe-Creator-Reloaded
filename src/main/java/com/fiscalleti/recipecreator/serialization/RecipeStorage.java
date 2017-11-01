@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
 
@@ -49,16 +50,22 @@ public class RecipeStorage {
 		return false;
 	}
 
-	public SerializedRecipe getFromRecipeID(final String name) {
+	public boolean removeRecipe(final String name) {
+		if (deleteRecipe(toLocation(name))) {
+			this.recipes.remove(name);
+			return true;
+		}
+		return false;
+	}
+
+	public SerializedRecipe getRecipe(final String name) {
 		return this.recipes.get(name);
 	}
 
-	public SerializedRecipe getFromResult(final ItemStack result) {
-		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet()) {
-			final SerializedRecipe value = entry.getValue();
-			if (value.getRecipe().getResult().isSimilar(result))
-				return value;
-		}
+	public String getIDFromResult(final ItemStack result) {
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet())
+			if (entry.getValue().getRecipe().getResult().isSimilar(result))
+				return entry.getKey();
 		return null;
 	}
 
@@ -74,6 +81,10 @@ public class RecipeStorage {
 			RecipeCreator.instance.log.log(Level.WARNING, e.getMessage(), e);
 		}
 		return false;
+	}
+
+	public static boolean deleteRecipe(final File file) {
+		return FileUtils.deleteQuietly(file);
 	}
 
 	public static SerializedRecipe loadRecipe(final File file) {

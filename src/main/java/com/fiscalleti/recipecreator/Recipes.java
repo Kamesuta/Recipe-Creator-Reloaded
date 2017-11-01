@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
@@ -24,13 +25,13 @@ public class Recipes {
 
 		final ItemStack out = player.getInventory().getItem(17)!=null ? player.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
 
-		final ShapelessRecipe r = new ShapelessRecipe(out);
+		final ShapelessRecipe recipe = new ShapelessRecipe(out);
 
 		boolean empty = true;
 
 		for (final ItemStack m : ingred)
 			if (m!=null) {
-				r.addIngredient(m.getData());
+				recipe.addIngredient(m.getData());
 				empty = false;
 			}
 
@@ -41,11 +42,9 @@ public class Recipes {
 
 		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
-		final SerializedRecipe r2 = new SerializedRecipe(r, name);
+		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
+		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
-
-		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
 		player.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
 	}
@@ -70,35 +69,33 @@ public class Recipes {
 			return;
 		}
 
-		final ShapedRecipe r = new ShapedRecipe(out);
-		r.shape(new String[] { "abc", "def", "ghi" });
+		final ShapedRecipe recipe = new ShapedRecipe(out);
+		recipe.shape(new String[] { "abc", "def", "ghi" });
 
 		if (tl.getType()!=Material.AIR)
-			r.setIngredient('a', tl.getData());
+			recipe.setIngredient('a', tl.getData());
 		if (tm.getType()!=Material.AIR)
-			r.setIngredient('b', tm.getData());
+			recipe.setIngredient('b', tm.getData());
 		if (tr.getType()!=Material.AIR)
-			r.setIngredient('c', tr.getData());
+			recipe.setIngredient('c', tr.getData());
 		if (ml.getType()!=Material.AIR)
-			r.setIngredient('d', ml.getData());
+			recipe.setIngredient('d', ml.getData());
 		if (mm.getType()!=Material.AIR)
-			r.setIngredient('e', mm.getData());
+			recipe.setIngredient('e', mm.getData());
 		if (mr.getType()!=Material.AIR)
-			r.setIngredient('f', mr.getData());
+			recipe.setIngredient('f', mr.getData());
 		if (bl.getType()!=Material.AIR)
-			r.setIngredient('g', bl.getData());
+			recipe.setIngredient('g', bl.getData());
 		if (bm.getType()!=Material.AIR)
-			r.setIngredient('h', bm.getData());
+			recipe.setIngredient('h', bm.getData());
 		if (br.getType()!=Material.AIR)
-			r.setIngredient('i', br.getData());
+			recipe.setIngredient('i', br.getData());
 
 		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
-		final SerializedRecipe r2 = new SerializedRecipe(r, name);
+		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
+		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
-
-		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
 		player.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
 
@@ -111,7 +108,7 @@ public class Recipes {
 
 		final ItemStack out = player.getInventory().getItem(17)!=null ? player.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
 
-		final FurnaceRecipe r = new FurnaceRecipe(out, out.getData());
+		final FurnaceRecipe recipe = new FurnaceRecipe(out, out.getData());
 
 		if (in==null||out.getType()==Material.AIR) {
 			player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
@@ -120,11 +117,9 @@ public class Recipes {
 
 		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
-		final SerializedRecipe r2 = new SerializedRecipe(r, name);
+		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
+		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, r2);
-
-		RecipeCreator.instance.getServer().addRecipe(r2.getRecipe());
 		player.sendMessage(ChatColor.GREEN+"Furnace recipe '"+name+"' created");
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Furnace recipe '"+name+"' created");
 	}
@@ -133,14 +128,19 @@ public class Recipes {
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Loading Recipe Files");
 		int count = 0;
 		for (final SerializedRecipe r : RecipeCreator.instance.recipestorage.getRecipes().values()) {
-			RecipeCreator.instance.getServer().addRecipe(r.getRecipe());
+			RecipeCreator.instance.reciperegistrar.addRecipe(r.getRecipe());
 			count++;
 		}
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Done Loading Recipe Files! ("+count+" Recipes)");
 	}
 
 	public static boolean removeRecipe(final String name, final ChatOutput s) {
+		final Recipe remove = RecipeCreator.instance.recipestorage.getRecipe(name).getRecipe();
+		if (remove!=null)
+			if (RecipeCreator.instance.recipestorage.removeRecipe(name)) {
+				RecipeCreator.instance.reciperegistrar.removeRecipe(remove);
+				return true;
+			}
 		return false;
-		// TODO
 	}
 }
