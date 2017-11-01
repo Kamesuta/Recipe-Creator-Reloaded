@@ -1,6 +1,7 @@
 package com.fiscalleti.recipecreator;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,6 +13,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
+import com.google.common.collect.Lists;
 
 public class Recipes {
 	public static void createShapeless(final Player player) {
@@ -126,12 +128,12 @@ public class Recipes {
 
 	public static void loadRecipes(final ChatOutput output) {
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Loading Recipe Files");
-		int count = 0;
-		for (final SerializedRecipe r : RecipeCreator.instance.recipestorage.getRecipes().values()) {
-			RecipeCreator.instance.reciperegistrar.addRecipe(r.getRecipe());
-			count++;
-		}
-		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Done Loading Recipe Files! ("+count+" Recipes)");
+		RecipeCreator.instance.recipestorage.load();
+		final List<Recipe> recipes = Lists.newArrayList();
+		for (final SerializedRecipe r : RecipeCreator.instance.recipestorage.getRecipes().values())
+			recipes.add(r.getRecipe());
+		RecipeCreator.instance.reciperegistrar.setRecipes(recipes);
+		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Done Loading Recipe Files! ("+recipes.size()+" Recipes)");
 	}
 
 	public static boolean removeRecipe(final String name, final ChatOutput s) {

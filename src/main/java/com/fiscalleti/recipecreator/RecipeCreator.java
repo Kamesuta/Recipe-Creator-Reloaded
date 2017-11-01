@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -180,37 +181,36 @@ public class RecipeCreator extends JavaPlugin {
 				return true;
 			}
 
-			/*
 			if (args[0].equalsIgnoreCase("info")) {
 				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.info") : true;
-			
+
 				if (!hasperm) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
-			
+
 				if (!(args.length>1)) {
 					sender.sendMessage(ChatColor.RED+"Usage: /recipe info <recipe-id>");
 					return true;
 				}
-			
+
 				if (!NumberUtils.isNumber(args[1])) {
 					sender.sendMessage(ChatColor.RED+"Error: '"+args[1]+"' is not a valid recipe ID.");
 					return true;
 				}
-			
+
 				//53 max
-				final SerializedRecipe r = RecipeCreator.instance.recipestorage.getFromRecipeID(args[1]);
+				final SerializedRecipe r = RecipeCreator.instance.recipestorage.getRecipe(args[1]);
 				sender.sendMessage("");
 				sender.sendMessage(ChatColor.GREEN+"Recipe info for recipe ID '"+ChatColor.YELLOW+args[1]+ChatColor.GREEN+"'");
-				ItemStack itemStack = r.getRecipe().getResult();
+				final ItemStack itemStack = r.getRecipe().getResult();
 				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+itemStack.getType().name()+" x "+itemStack.getAmount()+"] "+(itemStack.getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
-			
+
 				final String type = r.getType().name;
 				sender.sendMessage(ChatColor.YELLOW+"Type: "+ChatColor.GREEN+type);
-				final List<ItemStack> ingredients = r.getRecipe().getIngredients();
+				/*final List<ItemStack> ingredients = r.getRecipe().getIngredients();
 				String ing = "";
-				final ArrayList<String> already = new ArrayList<String>();
+				final List<String> already = Lists.newArrayList();
 				for (final ItemStack i : ingredients)
 					if (i!=null)
 						if (!already.contains(Functions.is2s(i))) {
@@ -218,10 +218,10 @@ public class RecipeCreator extends JavaPlugin {
 							already.add(Functions.is2s(i));
 						}
 				sender.sendMessage(ChatColor.YELLOW+"Ingredients: "+ChatColor.GREEN+ing);
-				sender.sendMessage(ChatColor.YELLOW+"Permission: "+ChatColor.GREEN+r.permission);
+				*/
+				//sender.sendMessage(ChatColor.YELLOW+"Permission: "+ChatColor.GREEN+r.permission);
 				return true;
 			}
-			*/
 
 			if (args[0].equalsIgnoreCase("reload")) {
 				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reload") : true;

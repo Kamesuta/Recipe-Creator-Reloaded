@@ -33,7 +33,7 @@ public class RecipeStorage {
 		for (final File recipeFile : this.recipeDir.listFiles(this.recipefilefilter)) {
 			final SerializedRecipe recipe = loadRecipe(recipeFile);
 			if (recipe!=null)
-				this.recipes.put(recipeFile.getName(), recipe);
+				this.recipes.put(fromLocation(recipeFile), recipe);
 		}
 		return this;
 	}
@@ -71,6 +71,10 @@ public class RecipeStorage {
 
 	private File toLocation(final String name) {
 		return new File(this.recipeDir, name+".json");
+	}
+
+	private String fromLocation(final File file) {
+		return StringUtils.substringBeforeLast(file.getName(), ".json");
 	}
 
 	public static boolean saveRecipe(final File file, final SerializedRecipe recipe) {
