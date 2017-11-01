@@ -2,6 +2,8 @@ package com.fiscalleti.recipecreator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,9 +13,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.material.MaterialData;
 
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class Recipes {
 	public static void createShapeless(final Player player) {
@@ -51,47 +55,66 @@ public class Recipes {
 		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
 	}
 
+	private static ItemStack item(final Player player, final int slot) {
+		final ItemStack itemStack = player.getInventory().getItem(slot);
+		return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
+	}
+
 	public static void createShaped(final Player player) {
-		final ItemStack tl = player.getInventory().getItem(9)!=null ? player.getInventory().getItem(9) : new ItemStack(Material.AIR, 1);
-		final ItemStack tm = player.getInventory().getItem(10)!=null ? player.getInventory().getItem(10) : new ItemStack(Material.AIR, 1);
-		final ItemStack tr = player.getInventory().getItem(11)!=null ? player.getInventory().getItem(11) : new ItemStack(Material.AIR, 1);
+		final Map<Character, MaterialData> map = Maps.newHashMap();
 
-		final ItemStack ml = player.getInventory().getItem(18)!=null ? player.getInventory().getItem(18) : new ItemStack(Material.AIR, 1);
-		final ItemStack mm = player.getInventory().getItem(19)!=null ? player.getInventory().getItem(19) : new ItemStack(Material.AIR, 1);
-		final ItemStack mr = player.getInventory().getItem(20)!=null ? player.getInventory().getItem(20) : new ItemStack(Material.AIR, 1);
+		map.put('a', item(player, 9).getData());
+		map.put('b', item(player, 10).getData());
+		map.put('c', item(player, 11).getData());
 
-		final ItemStack bl = player.getInventory().getItem(27)!=null ? player.getInventory().getItem(27) : new ItemStack(Material.AIR, 1);
-		final ItemStack bm = player.getInventory().getItem(28)!=null ? player.getInventory().getItem(28) : new ItemStack(Material.AIR, 1);
-		final ItemStack br = player.getInventory().getItem(29)!=null ? player.getInventory().getItem(29) : new ItemStack(Material.AIR, 1);
+		map.put('d', item(player, 18).getData());
+		map.put('e', item(player, 19).getData());
+		map.put('f', item(player, 20).getData());
 
-		final ItemStack out = player.getInventory().getItem(17)!=null ? player.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
+		map.put('g', item(player, 27).getData());
+		map.put('h', item(player, 28).getData());
+		map.put('i', item(player, 29).getData());
 
-		if (tl.getType()==Material.AIR&&tm.getType()==Material.AIR&&tr.getType()==Material.AIR&&ml.getType()==Material.AIR&&mm.getType()==Material.AIR&&mr.getType()==Material.AIR&&bl.getType()==Material.AIR&&bm.getType()==Material.AIR&&br.getType()==Material.AIR||out.getType()==Material.AIR) {
+		final ItemStack out = item(player, 17);
+
+		boolean allblank = true;
+		for (final MaterialData material : map.values())
+			if (material.getItemType()!=Material.AIR) {
+				allblank = false;
+				break;
+			}
+		if (allblank||out.getType()==Material.AIR) {
 			player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
 			return;
 		}
 
-		final ShapedRecipe recipe = new ShapedRecipe(out);
-		recipe.shape(new String[] { "abc", "def", "ghi" });
+		final Map<MaterialData, Character> inverses = Maps.newHashMap();
+		for (final Entry<Character, MaterialData> entry : map.entrySet())
+			inverses.put(entry.getValue(), entry.getKey());
 
-		if (tl.getType()!=Material.AIR)
-			recipe.setIngredient('a', tl.getData());
-		if (tm.getType()!=Material.AIR)
-			recipe.setIngredient('b', tm.getData());
-		if (tr.getType()!=Material.AIR)
-			recipe.setIngredient('c', tr.getData());
-		if (ml.getType()!=Material.AIR)
-			recipe.setIngredient('d', ml.getData());
-		if (mm.getType()!=Material.AIR)
-			recipe.setIngredient('e', mm.getData());
-		if (mr.getType()!=Material.AIR)
-			recipe.setIngredient('f', mr.getData());
-		if (bl.getType()!=Material.AIR)
-			recipe.setIngredient('g', bl.getData());
-		if (bm.getType()!=Material.AIR)
-			recipe.setIngredient('h', bm.getData());
-		if (br.getType()!=Material.AIR)
-			recipe.setIngredient('i', br.getData());
+		final ShapedRecipe recipe = new ShapedRecipe(out);
+
+		final Map<Character, MaterialData> ingreds = Maps.newHashMap();
+		final Map<Character, Character> charmap = Maps.newHashMap();
+		for (final Entry<Character, MaterialData> entry : map.entrySet()) {
+			final Character key = entry.getKey();
+			final MaterialData value = entry.getValue();
+			if (value.getItemType()!=Material.AIR) {
+				final Character ukey = inverses.get(value);
+				charmap.put(key, ukey);
+				ingreds.put(ukey, value);
+			} else
+				charmap.put(key, ' ');
+		}
+
+		recipe.shape(new String[] {
+				""+charmap.get('a')+charmap.get('b')+charmap.get('c'),
+				""+charmap.get('d')+charmap.get('e')+charmap.get('f'),
+				""+charmap.get('g')+charmap.get('h')+charmap.get('i'),
+		});
+
+		for (final Entry<Character, MaterialData> ingred : ingreds.entrySet())
+			recipe.setIngredient(ingred.getKey(), ingred.getValue());
 
 		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
 
