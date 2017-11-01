@@ -1,11 +1,11 @@
 package com.fiscalleti.recipecreator;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,8 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.fiscalleti.recipecreator.serialization.RecipeStorage;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
-
-import guava10.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 
 public class RecipeCreator extends JavaPlugin {
 
@@ -40,7 +39,7 @@ public class RecipeCreator extends JavaPlugin {
 		if (!getDataFolder().exists())
 			getDataFolder().mkdir();
 		// getServer().clearRecipes();
-		Recipes.loadRecipes(new CommandSender[] { this.console });
+		Recipes.loadRecipes(ChatOutput.create(this.console));
 	}
 
 	@Override
@@ -136,12 +135,12 @@ public class RecipeCreator extends JavaPlugin {
 				if (args[1].equalsIgnoreCase("ALL")) {
 					sender.sendMessage(ChatColor.RED+"=== REMOVING ALL RECIPES FROM SYSTEM ===");
 					RecipeCreator.instance.getServer().clearRecipes();
-					Recipes.loadRecipes(new CommandSender[] { this.console, sender });
+					Recipes.loadRecipes(ChatOutput.create(this.console, sender));
 					sender.sendMessage(ChatColor.RED+"=== ALL RECIPES REMOVED ===");
 					return true;
 				}
 
-				if (Recipes.removeRecipe(args[1], new CommandSender[] { sender, this.console })) {
+				if (Recipes.removeRecipe(args[1], ChatOutput.create(sender, this.console))) {
 					sender.sendMessage(ChatColor.YELLOW+"Recipe removed!");
 					return true;
 				} else {
@@ -164,58 +163,58 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				final List<SerializedRecipe> recs = RecipeCreator.instance.recipestorage.getRecipes();
-				final List<SerializedRecipe> rets = Lists.newArrayList();
-				for (final SerializedRecipe r : recs)
-					if (r.getResult().getData().getItemType().name().equalsIgnoreCase(args[1])||args[1].equalsIgnoreCase(String.valueOf(r.getResult().getTypeId()))||args[1].equalsIgnoreCase(String.valueOf(r.getResult().getTypeId())+":"+Byte.toString(r.getResult().getData().getData())))
-						rets.add(r);
+				final List<String> rets = Lists.newArrayList();
+				for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+					final ItemStack itemStack = entry.getValue().getRecipe().getResult();
+					if (
+						StringUtils.equalsIgnoreCase(itemStack.getType().name(), args[1])||
+								StringUtils.equalsIgnoreCase(String.valueOf(itemStack.getTypeId()), args[1])||
+								StringUtils.equalsIgnoreCase(itemStack.getTypeId()+":"+itemStack.getData().getData(), args[1])
+					)
+						rets.add(entry.getKey());
+				}
 
 				if (rets.size()<1) {
 					sender.sendMessage(ChatColor.RED+"No recipes found with result '"+args[1]+"'");
 					return true;
 				}
 
-				String ids = "";
-
-				for (final SerializedRecipe r : rets)
-					ids = ids.equalsIgnoreCase("") ? r.getId() : ids+", "+r.getId();
+				final String ids = StringUtils.join(rets, ", ");
 
 				sender.sendMessage(ChatColor.GREEN+"Recipe Results for query '"+args[1]+"'");
 				sender.sendMessage(ChatColor.YELLOW+"ID's: "+ids);
 				return true;
 			}
 
+			/*
 			if (args[0].equalsIgnoreCase("info")) {
 				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.info") : true;
-
+			
 				if (!hasperm) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
-
+			
 				if (!(args.length>1)) {
 					sender.sendMessage(ChatColor.RED+"Usage: /recipe info <recipe-id>");
 					return true;
 				}
-
+			
 				if (!NumberUtils.isNumber(args[1])) {
 					sender.sendMessage(ChatColor.RED+"Error: '"+args[1]+"' is not a valid recipe ID.");
 					return true;
 				}
-
-				if (!Recipes.recipeExists(args[1])) {
-					sender.sendMessage(ChatColor.RED+"Error: Could not find recipe under recipe ID '"+args[1]+"'.");
-					return true;
-				}
+			
 				//53 max
-				final SerializedRecipe r = RecipeCreator.instance.recipestorage.getRecipe(args[1]);
+				final SerializedRecipe r = RecipeCreator.instance.recipestorage.getFromRecipeID(args[1]);
 				sender.sendMessage("");
 				sender.sendMessage(ChatColor.GREEN+"Recipe info for recipe ID '"+ChatColor.YELLOW+args[1]+ChatColor.GREEN+"'");
-				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+r.getResult().getType().name()+" x "+r.getResult().getAmount()+"] "+(r.getResult().getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
-
+				ItemStack itemStack = r.getRecipe().getResult();
+				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+itemStack.getType().name()+" x "+itemStack.getAmount()+"] "+(itemStack.getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
+			
 				final String type = r.getType().name;
 				sender.sendMessage(ChatColor.YELLOW+"Type: "+ChatColor.GREEN+type);
-				final List<ItemStack> ingredients = r.getIngredients();
+				final List<ItemStack> ingredients = r.getRecipe().getIngredients();
 				String ing = "";
 				final ArrayList<String> already = new ArrayList<String>();
 				for (final ItemStack i : ingredients)
@@ -228,6 +227,7 @@ public class RecipeCreator extends JavaPlugin {
 				sender.sendMessage(ChatColor.YELLOW+"Permission: "+ChatColor.GREEN+r.permission);
 				return true;
 			}
+			*/
 
 			if (args[0].equalsIgnoreCase("reload")) {
 				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reload") : true;
@@ -237,8 +237,7 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				Recipes.regenerateRecipes(new CommandSender[] { sender });
-				Recipes.loadRecipes(new CommandSender[] { sender });
+				Recipes.loadRecipes(ChatOutput.create(sender));
 				return true;
 			}
 
@@ -249,10 +248,6 @@ public class RecipeCreator extends JavaPlugin {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
-
-				sender.sendMessage(ChatColor.RED+"=== RESETTING ALL RECIPES TO DEFAULT ===");
-				Recipes.resetAllRecipes(sender instanceof Player ? new CommandSender[] { sender, this.console } : new CommandSender[] { this.console });
-				sender.sendMessage(ChatColor.RED+"=== RECIPES RESET TO DEFAULT ===");
 				return true;
 			}
 
