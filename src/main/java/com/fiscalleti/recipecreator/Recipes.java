@@ -1,6 +1,5 @@
 package com.fiscalleti.recipecreator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,169 +20,217 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class Recipes {
-	public static void createShapeless(final Player player) {
-		final ArrayList<ItemStack> ingred = new ArrayList<ItemStack>();
-		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
-		ingred.add(player.getInventory().getItem(9)!=null ? player.getInventory().getItem(9) : null);
-		ingred.add(player.getInventory().getItem(10)!=null ? player.getInventory().getItem(10) : null);
+	public static abstract class RecipeBuilder {
+		protected final Player player;
 
-		ingred.add(player.getInventory().getItem(18)!=null ? player.getInventory().getItem(18) : null);
-		ingred.add(player.getInventory().getItem(19)!=null ? player.getInventory().getItem(19) : null);
+		public RecipeBuilder(final Player player) {
+			this.player = player;
+		}
 
-		final ItemStack out = player.getInventory().getItem(17)!=null ? player.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
+		protected ItemStack item(final int slot) {
+			final ItemStack itemStack = this.player.getInventory().getItem(slot);
+			return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
+		}
 
-		final ShapelessRecipe recipe = new ShapelessRecipe(out);
+		public abstract Recipe toRecipe();
 
-		boolean empty = true;
+		public abstract SerializedRecipe toSerializedRecipe();
 
-		for (final ItemStack m : ingred)
-			if (m!=null) {
-				recipe.addIngredient(m.getData());
-				empty = false;
+		public static class ShapelessRecipeBuilder extends RecipeBuilder {
+			public ShapelessRecipeBuilder(final Player player) {
+				super(player);
 			}
 
-		if (empty||out.getType()==Material.AIR) {
-			player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
-			return;
-		}
+			@Override
+			public ShapelessRecipe toRecipe() {
+				final List<MaterialData> ingred = Lists.newArrayList();
 
-		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
+				//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
+				ingred.add(item(9).getData());
+				ingred.add(item(10).getData());
+				ingred.add(item(11).getData());
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
-		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
+				ingred.add(item(18).getData());
+				ingred.add(item(19).getData());
+				ingred.add(item(20).getData());
 
-		player.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
-	}
+				ingred.add(item(27).getData());
+				ingred.add(item(28).getData());
+				ingred.add(item(29).getData());
 
-	private static ItemStack item(final Player player, final int slot) {
-		final ItemStack itemStack = player.getInventory().getItem(slot);
-		return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
-	}
+				final ItemStack out = item(17);
 
-	public static void createShaped(final Player player, final boolean trim) {
-		final Map<Character, MaterialData> map = Maps.newHashMap();
+				final ShapelessRecipe recipe = new ShapelessRecipe(out);
 
-		map.put('a', item(player, 9).getData());
-		map.put('b', item(player, 10).getData());
-		map.put('c', item(player, 11).getData());
+				boolean empty = true;
+				for (final MaterialData m : ingred)
+					if (m!=null) {
+						recipe.addIngredient(m);
+						empty = false;
+					}
 
-		map.put('d', item(player, 18).getData());
-		map.put('e', item(player, 19).getData());
-		map.put('f', item(player, 20).getData());
+				if (empty||out.getType()==Material.AIR)
+					return null;
 
-		map.put('g', item(player, 27).getData());
-		map.put('h', item(player, 28).getData());
-		map.put('i', item(player, 29).getData());
-
-		final ItemStack out = item(player, 17);
-
-		boolean allblank = true;
-		for (final MaterialData material : map.values())
-			if (material.getItemType()!=Material.AIR) {
-				allblank = false;
-				break;
+				return recipe;
 			}
-		if (allblank||out.getType()==Material.AIR) {
-			player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
-			return;
+
+			@Override
+			public SerializedRecipe toSerializedRecipe() {
+				final ShapelessRecipe recipe = toRecipe();
+				if (recipe==null)
+					return null;
+				return new SerializedRecipe(recipe);
+			}
 		}
 
-		final Map<MaterialData, Character> inverses = Maps.newHashMap();
-		for (final Entry<Character, MaterialData> entry : map.entrySet())
-			inverses.put(entry.getValue(), entry.getKey());
+		public static class ShapedRecipeBuilder extends RecipeBuilder {
+			public ShapedRecipeBuilder(final Player player) {
+				super(player);
+			}
 
-		final ShapedRecipe recipe = new ShapedRecipe(out);
+			@Override
+			public ShapedRecipe toRecipe() {
+				final Map<Character, MaterialData> map = Maps.newHashMap();
 
-		final Map<Character, MaterialData> ingreds = Maps.newHashMap();
-		final Map<Character, Character> charmap = Maps.newHashMap();
-		for (final Entry<Character, MaterialData> entry : map.entrySet()) {
-			final Character key = entry.getKey();
-			final MaterialData value = entry.getValue();
-			if (value.getItemType()!=Material.AIR) {
-				final Character ukey = inverses.get(value);
-				charmap.put(key, ukey);
-				ingreds.put(ukey, value);
-			} else
-				charmap.put(key, ' ');
-		}
+				//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
+				map.put('a', item(9).getData());
+				map.put('b', item(10).getData());
+				map.put('c', item(11).getData());
 
-		Character[][] shape = new Character[][] {
-				new Character[] { charmap.get('a'), charmap.get('b'), charmap.get('c') },
-				new Character[] { charmap.get('d'), charmap.get('e'), charmap.get('f') },
-				new Character[] { charmap.get('g'), charmap.get('h'), charmap.get('i') },
-		};
+				map.put('d', item(18).getData());
+				map.put('e', item(19).getData());
+				map.put('f', item(20).getData());
 
-		if (trim)
-			shape = trimShape(shape);
+				map.put('g', item(27).getData());
+				map.put('h', item(28).getData());
+				map.put('i', item(29).getData());
 
-		final String[] shapestr = new String[shape.length];
-		for (int i = 0; i<shape.length; i++)
-			shapestr[i] = StringUtils.join(shape[i]);
+				final ItemStack out = item(17);
 
-		recipe.shape(shapestr);
+				boolean empty = true;
+				for (final MaterialData material : map.values())
+					if (material.getItemType()!=Material.AIR) {
+						empty = false;
+						break;
+					}
 
-		for (final Entry<Character, MaterialData> ingred : ingreds.entrySet())
-			recipe.setIngredient(ingred.getKey(), ingred.getValue());
+				if (empty||out.getType()==Material.AIR)
+					return null;
 
-		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
+				final Map<MaterialData, Character> inverses = Maps.newHashMap();
+				for (final Entry<Character, MaterialData> entry : map.entrySet())
+					inverses.put(entry.getValue(), entry.getKey());
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
-		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
-
-		player.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Shaped recipe '"+name+"' created");
-
-	}
-
-	private static Character[][] trimShape(final Character[][] shape) {
-		int sx = 0;
-		int sy = 0;
-		int vx = -1;
-		int vy = -1;
-		for (int i = 0; i<shape.length; i++)
-			for (int j = 0; j<shape[0].length; j++) {
-				if (!Character.isWhitespace(shape[i][j])) {
-					if (vx<0)
-						vx = i;
-					sx = Math.max(sx, i+1-vx);
+				final Map<Character, MaterialData> ingreds = Maps.newHashMap();
+				final Map<Character, Character> charmap = Maps.newHashMap();
+				for (final Entry<Character, MaterialData> entry : map.entrySet()) {
+					final Character key = entry.getKey();
+					final MaterialData value = entry.getValue();
+					if (value.getItemType()!=Material.AIR) {
+						final Character ukey = inverses.get(value);
+						charmap.put(key, ukey);
+						ingreds.put(ukey, value);
+					} else
+						charmap.put(key, ' ');
 				}
-				if (!Character.isWhitespace(shape[j][i])) {
-					if (vy<0)
-						vy = i;
-					sy = Math.max(sy, i+1-vy);
-				}
+
+				final Character[][] shape = processShape(new Character[][] {
+						new Character[] { charmap.get('a'), charmap.get('b'), charmap.get('c') },
+						new Character[] { charmap.get('d'), charmap.get('e'), charmap.get('f') },
+						new Character[] { charmap.get('g'), charmap.get('h'), charmap.get('i') },
+				});
+
+				final ShapedRecipe recipe = new ShapedRecipe(out);
+
+				final String[] shapestr = new String[shape.length];
+				for (int i = 0; i<shape.length; i++)
+					shapestr[i] = StringUtils.join(shape[i]);
+
+				recipe.shape(shapestr);
+
+				for (final Entry<Character, MaterialData> ingred : ingreds.entrySet())
+					recipe.setIngredient(ingred.getKey(), ingred.getValue());
+
+				return recipe;
 			}
-		if (sx==shape.length&&sy==shape.length)
-			return shape;
-		final Character[][] trimed = new Character[sx][sy];
-		for (int i = 0; i<sx; i++)
-			for (int j = 0; j<sy; j++)
-				trimed[i][j] = shape[i+vx][j+vy];
-		return trimed;
-	}
 
-	public static void createFurnace(final Player player) {
-		ItemStack in = null;
-		//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
-		in = player.getInventory().getItem(29)!=null ? player.getInventory().getItem(29) : null;
+			@Override
+			public final SerializedRecipe toSerializedRecipe() {
+				final ShapedRecipe recipe = toRecipe();
+				if (recipe==null)
+					return null;
+				return new SerializedRecipe(recipe);
+			}
 
-		final ItemStack out = player.getInventory().getItem(17)!=null ? player.getInventory().getItem(17) : new ItemStack(Material.AIR, 1);
-
-		final FurnaceRecipe recipe = new FurnaceRecipe(out, out.getData());
-
-		if (in==null||out.getType()==Material.AIR) {
-			player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
-			return;
+			protected Character[][] processShape(final Character[][] shape) {
+				return shape;
+			}
 		}
 
-		final String name = String.valueOf(RecipeCreator.instance.recipestorage.getRecipes().size());
+		public static class TrimmedShapedRecipeBuilder extends ShapedRecipeBuilder {
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, new SerializedRecipe(recipe, name));
-		RecipeCreator.instance.reciperegistrar.addRecipe(recipe);
+			public TrimmedShapedRecipeBuilder(final Player player) {
+				super(player);
+			}
 
-		player.sendMessage(ChatColor.GREEN+"Furnace recipe '"+name+"' created");
-		RecipeCreator.instance.console.sendMessage(ChatColor.GREEN+"Furnace recipe '"+name+"' created");
+			@Override
+			protected Character[][] processShape(final Character[][] shape) {
+				int sx = 0;
+				int sy = 0;
+				int vx = -1;
+				int vy = -1;
+				for (int i = 0; i<shape.length; i++)
+					for (int j = 0; j<shape[0].length; j++) {
+						if (!Character.isWhitespace(shape[i][j])) {
+							if (vx<0)
+								vx = i;
+							sx = Math.max(sx, i+1-vx);
+						}
+						if (!Character.isWhitespace(shape[j][i])) {
+							if (vy<0)
+								vy = i;
+							sy = Math.max(sy, i+1-vy);
+						}
+					}
+				if (shape.length>0&&sx==shape[0].length&&sy==shape.length)
+					return shape;
+				final Character[][] trimed = new Character[sx][sy];
+				for (int i = 0; i<sx; i++)
+					for (int j = 0; j<sy; j++)
+						trimed[i][j] = shape[i+vx][j+vy];
+				return trimed;
+			}
+		}
+
+		public static class FurnaceRecipeBuilder extends RecipeBuilder {
+			public FurnaceRecipeBuilder(final Player player) {
+				super(player);
+			}
+
+			@Override
+			public FurnaceRecipe toRecipe() {
+				final MaterialData in = item(29).getData();
+				final ItemStack out = item(17);
+
+				if (in.getItemType()==Material.AIR||out.getType()==Material.AIR) {
+					this.player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
+					return null;
+				}
+
+				final FurnaceRecipe recipe = new FurnaceRecipe(out, in);
+
+				return recipe;
+			}
+
+			@Override
+			public SerializedRecipe toSerializedRecipe() {
+				final FurnaceRecipe recipe = toRecipe();
+				if (recipe==null)
+					return null;
+				return new SerializedRecipe(recipe);
+			}
+		}
 	}
 
 	public static void loadRecipes(final ChatOutput output) {
@@ -196,7 +243,19 @@ public class Recipes {
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Done Loading Recipe Files! ("+recipes.size()+" Recipes)");
 	}
 
-	public static boolean removeRecipe(final String name, final ChatOutput s) {
+	public static void add(final ChatOutput output, final String name, final SerializedRecipe recipe) {
+		if (RecipeCreator.instance.recipestorage.getRecipe(name)!=null) {
+			output.sendMessage(ChatColor.RED+"A recipe with that name already exists");
+			return;
+		}
+
+		RecipeCreator.instance.recipestorage.putRecipe(name, recipe);
+		RecipeCreator.instance.reciperegistrar.addRecipe(recipe.getRecipe());
+
+		output.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
+	}
+
+	public static boolean removeRecipe(final ChatOutput output, final String name) {
 		final Recipe remove = RecipeCreator.instance.recipestorage.getRecipe(name).getRecipe();
 		if (remove!=null)
 			if (RecipeCreator.instance.recipestorage.removeRecipe(name)) {

@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder;
 import com.fiscalleti.recipecreator.serialization.RecipeStorage;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.common.collect.Lists;
@@ -93,32 +94,47 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 				final Player player = (Player) sender;
-				String type = "shaped";
-				if (args.length>1)
-					type = args[1];
+				if (args.length>2) {
+					final String type = args[1];
+					final String name = args[2];
 
-				if (!(type.equalsIgnoreCase("shaped")||type.equalsIgnoreCase("shapeless"))) {
-					player.sendMessage(ChatColor.RED+"Usage: /recipe add [shaped/shapeless]");
-					return true;
-				}
-
-				if (type.equalsIgnoreCase("shapeless")) {
-					if (!player.hasPermission("recipecreator.add.shapeless")) {
-						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+					if (type.equalsIgnoreCase("shapeless")) {
+						if (!player.hasPermission("recipecreator.add.shapeless")) {
+							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+							return true;
+						}
+						Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe());
 						return true;
 					}
-					Recipes.createShapeless(player);
-					return true;
-				}
 
-				if (type.equalsIgnoreCase("shaped")||type.equalsIgnoreCase("trimshaped")) {
-					if (!player.hasPermission("recipecreator.add.shaped")) {
-						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+					if (type.equalsIgnoreCase("shaped")) {
+						if (!player.hasPermission("recipecreator.add.shaped")) {
+							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+							return true;
+						}
+						Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe());
 						return true;
 					}
-					Recipes.createShaped(player, type.equalsIgnoreCase("trimshaped"));
-					return true;
+
+					if (type.equalsIgnoreCase("trimshaped")) {
+						if (!player.hasPermission("recipecreator.add.trimshaped")) {
+							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+							return true;
+						}
+						Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe());
+						return true;
+					}
+
+					if (type.equalsIgnoreCase("furnace")) {
+						if (!player.hasPermission("recipecreator.add.furnace")) {
+							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
+							return true;
+						}
+						Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe());
+						return true;
+					}
 				}
+				player.sendMessage(ChatColor.RED+"Usage: /recipe add [shaped/shapeless]");
 				return true;
 			}
 
@@ -135,7 +151,7 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 
-				if (Recipes.removeRecipe(args[1], ChatOutput.create(sender, this.console))) {
+				if (Recipes.removeRecipe(ChatOutput.create(sender, this.console), args[1])) {
 					sender.sendMessage(ChatColor.YELLOW+"Recipe removed!");
 					return true;
 				} else {

@@ -36,16 +36,16 @@ public class SerializedRecipe implements Serializable {
 	private ShapelessRecipe shapeless_recipe;
 	private FurnaceRecipe furnace_recipe;
 
-	public SerializedRecipe(final ShapedRecipe r, final String id) {
-		this.shaped_recipe = r;
+	public SerializedRecipe(final ShapedRecipe recipe) {
+		this.shaped_recipe = recipe;
 	}
 
-	public SerializedRecipe(final ShapelessRecipe r, final String id) {
-		this.shapeless_recipe = r;
+	public SerializedRecipe(final ShapelessRecipe recipe) {
+		this.shapeless_recipe = recipe;
 	}
 
-	public SerializedRecipe(final FurnaceRecipe r, final String id) {
-		this.furnace_recipe = r;
+	public SerializedRecipe(final FurnaceRecipe recipe) {
+		this.furnace_recipe = recipe;
 	}
 
 	public Recipe getRecipe() {
