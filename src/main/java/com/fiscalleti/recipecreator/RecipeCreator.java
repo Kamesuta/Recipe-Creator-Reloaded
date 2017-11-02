@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -44,6 +43,16 @@ public class RecipeCreator extends JavaPlugin {
 			getDataFolder().mkdir();
 		// getServer().clearRecipes();
 		Recipes.loadRecipes(ChatOutput.create(this.console));
+	}
+
+	public static boolean hasPermission(final Player player, final String node) {
+		if (player.hasPermission(node)||player.hasPermission("*"))
+			return true;
+		for (int y = 0; y<node.length(); y++)
+			if (node.charAt(y)=='.')
+				if (player.hasPermission(node.substring(0, y)+".*"))
+					return true;
+		return false;
 	}
 
 	@Override
@@ -99,7 +108,7 @@ public class RecipeCreator extends JavaPlugin {
 					final String name = args[2];
 
 					if (type.equalsIgnoreCase("shapeless")) {
-						if (!player.hasPermission("recipecreator.add.shapeless")) {
+						if (!hasPermission(player, "recipecreator.add.shapeless")) {
 							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 							return true;
 						}
@@ -108,7 +117,7 @@ public class RecipeCreator extends JavaPlugin {
 					}
 
 					if (type.equalsIgnoreCase("shaped")) {
-						if (!player.hasPermission("recipecreator.add.shaped")) {
+						if (!hasPermission(player, "recipecreator.add.shaped")) {
 							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 							return true;
 						}
@@ -116,8 +125,8 @@ public class RecipeCreator extends JavaPlugin {
 						return true;
 					}
 
-					if (type.equalsIgnoreCase("trimshaped")) {
-						if (!player.hasPermission("recipecreator.add.trimshaped")) {
+					if (type.equalsIgnoreCase("shaped_trim")) {
+						if (!hasPermission(player, "recipecreator.add.shaped.trim")) {
 							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 							return true;
 						}
@@ -126,7 +135,7 @@ public class RecipeCreator extends JavaPlugin {
 					}
 
 					if (type.equalsIgnoreCase("furnace")) {
-						if (!player.hasPermission("recipecreator.add.furnace")) {
+						if (!hasPermission(player, "recipecreator.add.furnace")) {
 							player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 							return true;
 						}
@@ -134,7 +143,8 @@ public class RecipeCreator extends JavaPlugin {
 						return true;
 					}
 				}
-				player.sendMessage(ChatColor.RED+"Usage: /recipe add [shaped/shapeless]");
+
+				player.sendMessage(ChatColor.RED+"Usage: /recipe add [shaped/shaped_trim/shapeless/furnace] <name>");
 				return true;
 			}
 
@@ -207,11 +217,6 @@ public class RecipeCreator extends JavaPlugin {
 
 				if (!(args.length>1)) {
 					sender.sendMessage(ChatColor.RED+"Usage: /recipe info <recipe-id>");
-					return true;
-				}
-
-				if (!NumberUtils.isNumber(args[1])) {
-					sender.sendMessage(ChatColor.RED+"Error: '"+args[1]+"' is not a valid recipe ID.");
 					return true;
 				}
 

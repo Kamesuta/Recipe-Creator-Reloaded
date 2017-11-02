@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 
 import com.fiscalleti.recipecreator.RecipeCreator;
 import com.google.common.collect.Maps;
@@ -30,6 +31,7 @@ public class RecipeStorage {
 	}
 
 	public RecipeStorage load() {
+		this.recipes.clear();
 		for (final File recipeFile : this.recipeDir.listFiles(this.recipefilefilter)) {
 			final SerializedRecipe recipe = loadRecipe(recipeFile);
 			if (recipe!=null)
@@ -65,6 +67,17 @@ public class RecipeStorage {
 	public String getIDFromResult(final ItemStack result) {
 		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet())
 			if (entry.getValue().getRecipe().getResult().isSimilar(result))
+				return entry.getKey();
+		return null;
+	}
+
+	public String getIDFromRecipe(final Recipe recipe) {
+		return getIDFromSerializedRecipe(SerializedRecipe.fromRecipe(recipe));
+	}
+
+	public String getIDFromSerializedRecipe(final SerializedRecipe recipe) {
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet())
+			if (SerializedRecipe.recipeEquals(recipe, entry.getValue()))
 				return entry.getKey();
 		return null;
 	}

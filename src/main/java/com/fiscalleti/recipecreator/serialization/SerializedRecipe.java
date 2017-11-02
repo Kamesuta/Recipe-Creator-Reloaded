@@ -67,4 +67,43 @@ public class SerializedRecipe implements Serializable {
 			return RecipeType.FURNACE;
 		return null;
 	}
+
+	public static SerializedRecipe fromRecipe(final Recipe recipe) {
+		if (recipe instanceof ShapedRecipe)
+			return new SerializedRecipe((ShapedRecipe) recipe);
+		else if (recipe instanceof ShapelessRecipe)
+			return new SerializedRecipe((ShapelessRecipe) recipe);
+		else if (recipe instanceof FurnaceRecipe)
+			return new SerializedRecipe((FurnaceRecipe) recipe);
+		return null;
+	}
+
+	public static boolean recipeEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
+		if (recipe0==null&&recipe1==null)
+			return true;
+		if (recipe0==null||recipe1==null)
+			return false;
+		final RecipeType type0 = recipe0.getType();
+		final RecipeType type1 = recipe1.getType();
+		if (type0==null||type1==null||type0!=type1)
+			return false;
+		final Recipe recipe00 = recipe0.getRecipe();
+		final Recipe recipe01 = recipe1.getRecipe();
+		switch (type0) {
+			case SHAPED:
+				final ShapedRecipe recipe10 = (ShapedRecipe) recipe00;
+				final ShapedRecipe recipe11 = (ShapedRecipe) recipe01;
+				return recipe10.getResult().equals(recipe11.getResult())&&recipe10.getIngredientMap().equals(recipe11.getIngredientMap());
+			case SHAPELESS:
+				final ShapelessRecipe recipe20 = (ShapelessRecipe) recipe00;
+				final ShapelessRecipe recipe21 = (ShapelessRecipe) recipe01;
+				return recipe20.getResult().equals(recipe21.getResult())&&recipe20.getIngredientList().equals(recipe21.getIngredientList());
+			case FURNACE:
+				final FurnaceRecipe recipe30 = (FurnaceRecipe) recipe00;
+				final FurnaceRecipe recipe31 = (FurnaceRecipe) recipe01;
+				return recipe30.getResult().equals(recipe31.getResult())&&recipe30.getInput().isSimilar(recipe31.getInput());
+			default:
+				return false;
+		}
+	}
 }
