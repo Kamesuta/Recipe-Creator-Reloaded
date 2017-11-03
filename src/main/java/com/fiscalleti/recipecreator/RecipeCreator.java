@@ -2,7 +2,6 @@ package com.fiscalleti.recipecreator;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
@@ -12,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.fiscalleti.recipecreator.Recipes.RecipeBuilder;
@@ -45,12 +45,14 @@ public class RecipeCreator extends JavaPlugin {
 		Recipes.loadRecipes(ChatOutput.create(this.console));
 	}
 
-	public static boolean hasPermission(final Player player, final String node) {
-		if (player.hasPermission(node)||player.hasPermission("*"))
+	public static boolean hasPermission(final Permissible permissible, final String node) {
+		if (!(permissible instanceof Player))
+			return true;
+		if (permissible.hasPermission(node)||permissible.hasPermission("*"))
 			return true;
 		for (int y = 0; y<node.length(); y++)
 			if (node.charAt(y)=='.')
-				if (player.hasPermission(node.substring(0, y)+".*"))
+				if (permissible.hasPermission(node.substring(0, y)+".*"))
 					return true;
 		return false;
 	}
@@ -70,29 +72,24 @@ public class RecipeCreator extends JavaPlugin {
 			}
 			if (args[0].equalsIgnoreCase("help")) {
 				// /recipe help
-				final ConcurrentHashMap<String, Boolean> permissable = new ConcurrentHashMap<String, Boolean>();
-				permissable.put("Add", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.add.shaped")||((Player) sender).hasPermission("recipecreator.add.shapeless") : true);
-				permissable.put("Remove", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.remove") : true);
-				permissable.put("Info", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.info") : true);
-				permissable.put("Lookup", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.lookup") : true);
-				permissable.put("Reset", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reset") : true);
-				permissable.put("Reload", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reload") : true);
-				permissable.put("Perms", sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.permissioncontrol") : true);
 				sender.sendMessage(ChatColor.YELLOW+"--------- "+ChatColor.GREEN+"Recipe Creator"+ChatColor.YELLOW+" ---------");
 				sender.sendMessage(ChatColor.GRAY+"Recipe Creator Commands");
-				if (permissable.get("Add"))
-					sender.sendMessage(ChatColor.GOLD+"/recipe add [shaped/shapeless]: "+ChatColor.WHITE+"Addes a recipe to the game");
-				if (permissable.get("Remove"))
-					sender.sendMessage(ChatColor.GOLD+"/recipe remove <recipe-id / ALL>: "+ChatColor.WHITE+"Removes a recipe from the game");
-				if (permissable.get("Info"))
-					sender.sendMessage(ChatColor.GOLD+"/recipe info [recipe-id]: "+ChatColor.WHITE+"Retrieves a recipes information");
-				if (permissable.get("Lookup"))
+				if (
+					hasPermission(sender, "recipecreator.add.shaped")||hasPermission(sender, "recipecreator.add.shaped.trim")||
+							hasPermission(sender, "recipecreator.add.shapeless")||hasPermission(sender, "recipecreator.add.furnace")
+				)
+					sender.sendMessage(ChatColor.GOLD+"/recipe add <shaped/shaped_trim/shapeless/furnace> <recipe-name>: "+ChatColor.WHITE+"Addes a recipe to the game");
+				if (hasPermission(sender, "recipecreator.remove"))
+					sender.sendMessage(ChatColor.GOLD+"/recipe remove <recipe-name>: "+ChatColor.WHITE+"Removes a recipe from the game");
+				if (hasPermission(sender, "recipecreator.info"))
+					sender.sendMessage(ChatColor.GOLD+"/recipe info <recipe-name>: "+ChatColor.WHITE+"Retrieves a recipes information");
+				if (hasPermission(sender, "recipecreator.lookup"))
 					sender.sendMessage(ChatColor.GOLD+"/recipe lookup <ITEM_NAME>: "+ChatColor.WHITE+"Retrieves an items Recipe ID's");
-				if (permissable.get("Reset"))
+				if (hasPermission(sender, "recipecreator.reset"))
 					sender.sendMessage(ChatColor.GOLD+"/recipe reset: "+ChatColor.WHITE+"Resets the recipes to default");
-				if (permissable.get("Reload"))
+				if (hasPermission(sender, "recipecreator.reload"))
 					sender.sendMessage(ChatColor.GOLD+"/recipe reload: "+ChatColor.WHITE+"Reloads the recipes");
-				if (permissable.get("Perms"))
+				if (hasPermission(sender, "recipecreator.permissioncontrol"))
 					sender.sendMessage(ChatColor.GOLD+"/recipe permissions <enable/disable>: "+ChatColor.WHITE+"Enabled or disables crafting permissions");
 				return true;
 			}
@@ -144,20 +141,18 @@ public class RecipeCreator extends JavaPlugin {
 					}
 				}
 
-				player.sendMessage(ChatColor.RED+"Usage: /recipe add [shaped/shaped_trim/shapeless/furnace] <name>");
+				player.sendMessage(ChatColor.RED+"Usage: /recipe add <shaped/shaped_trim/shapeless/furnace> <name>");
 				return true;
 			}
 
 			if (args[0].equalsIgnoreCase("remove")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.remove") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.remove")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
 
 				if (!(args.length>1)) {
-					sender.sendMessage(ChatColor.RED+"Usage: /recipe remove <recipe-id / ALL>");
+					sender.sendMessage(ChatColor.RED+"Usage: /recipe remove <recipe-name>");
 					return true;
 				}
 
@@ -172,9 +167,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 
 			if (args[0].equalsIgnoreCase("lookup")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.lookup") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.lookup")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
@@ -208,9 +201,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 
 			if (args[0].equalsIgnoreCase("info")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.info") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.info")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
@@ -245,9 +236,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 
 			if (args[0].equalsIgnoreCase("reload")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reload") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.reload")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
@@ -257,9 +246,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 
 			if (args[0].equalsIgnoreCase("reset")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.reset") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.reset")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
@@ -267,9 +254,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 
 			if (args[0].equalsIgnoreCase("permissions")) {
-				final boolean hasperm = sender instanceof Player ? ((Player) sender).hasPermission("recipecreator.permissioncontrol") : true;
-
-				if (!hasperm) {
+				if (!hasPermission(sender, "recipecreator.permissioncontrol")) {
 					sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 					return true;
 				}
