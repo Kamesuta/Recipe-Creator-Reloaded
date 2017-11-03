@@ -1,8 +1,11 @@
 package com.fiscalleti.recipecreator.serialization;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -93,15 +96,48 @@ public class SerializedRecipe implements Serializable {
 			case SHAPED:
 				final ShapedRecipe recipe10 = (ShapedRecipe) recipe00;
 				final ShapedRecipe recipe11 = (ShapedRecipe) recipe01;
-				return recipe10.getResult().equals(recipe11.getResult())&&recipe10.getIngredientMap().equals(recipe11.getIngredientMap());
+				if (!recipe10.getResult().equals(recipe11.getResult()))
+					return false;
+				final String[] shape0 = recipe10.getShape();
+				final String[] shape1 = recipe11.getShape();
+				if (shape0.length!=shape1.length)
+					return false;
+				final Map<Character, ItemStack> map0 = recipe10.getIngredientMap();
+				final Map<Character, ItemStack> map1 = recipe11.getIngredientMap();
+				for (int i = 0; i<shape0.length; i++) {
+					final char[] shape10 = shape0[i].toCharArray();
+					final char[] shape11 = shape1[i].toCharArray();
+					if (shape10.length!=shape11.length)
+						return false;
+					for (int j = 0; j<shape10.length; j++) {
+						final ItemStack item10 = map0.get(shape10[j]);
+						final ItemStack item11 = map1.get(shape11[j]);
+						if (item10.getData().equals(item11.getData()))
+							return false;
+					}
+				}
+				return true;
 			case SHAPELESS:
 				final ShapelessRecipe recipe20 = (ShapelessRecipe) recipe00;
 				final ShapelessRecipe recipe21 = (ShapelessRecipe) recipe01;
-				return recipe20.getResult().equals(recipe21.getResult())&&recipe20.getIngredientList().equals(recipe21.getIngredientList());
+				if (!recipe20.getResult().equals(recipe21.getResult()))
+					return false;
+				final List<ItemStack> list0 = recipe20.getIngredientList();
+				final List<ItemStack> list1 = recipe21.getIngredientList();
+				final int list0size = list0.size();
+				if (list0size!=list1.size())
+					return false;
+				for (int i = 0; i<list0size; i++) {
+					final ItemStack item10 = list0.get(i);
+					final ItemStack item11 = list1.get(i);
+					if (item10.getData().equals(item11.getData()))
+						return false;
+				}
+				return true;
 			case FURNACE:
 				final FurnaceRecipe recipe30 = (FurnaceRecipe) recipe00;
 				final FurnaceRecipe recipe31 = (FurnaceRecipe) recipe01;
-				return recipe30.getResult().equals(recipe31.getResult())&&recipe30.getInput().isSimilar(recipe31.getInput());
+				return recipe30.getResult().equals(recipe31.getResult())&&recipe30.getInput().getData().equals(recipe31.getInput().getData());
 			default:
 				return false;
 		}

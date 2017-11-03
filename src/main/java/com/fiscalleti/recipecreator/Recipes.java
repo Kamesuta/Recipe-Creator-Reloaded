@@ -43,29 +43,29 @@ public class Recipes {
 
 			@Override
 			public ShapelessRecipe toRecipe() {
-				final List<MaterialData> ingred = Lists.newArrayList();
+				final List<MaterialData> ingredients = Lists.newArrayList();
 
 				//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
-				ingred.add(item(9).getData());
-				ingred.add(item(10).getData());
-				ingred.add(item(11).getData());
+				ingredients.add(item(9).getData());
+				ingredients.add(item(10).getData());
+				ingredients.add(item(11).getData());
 
-				ingred.add(item(18).getData());
-				ingred.add(item(19).getData());
-				ingred.add(item(20).getData());
+				ingredients.add(item(18).getData());
+				ingredients.add(item(19).getData());
+				ingredients.add(item(20).getData());
 
-				ingred.add(item(27).getData());
-				ingred.add(item(28).getData());
-				ingred.add(item(29).getData());
+				ingredients.add(item(27).getData());
+				ingredients.add(item(28).getData());
+				ingredients.add(item(29).getData());
 
 				final ItemStack out = item(17);
 
 				final ShapelessRecipe recipe = new ShapelessRecipe(out);
 
 				boolean empty = true;
-				for (final MaterialData m : ingred)
-					if (m!=null) {
-						recipe.addIngredient(m);
+				for (final MaterialData ingredient : ingredients)
+					if (ingredient.getItemType()!=Material.AIR) {
+						recipe.addIngredient(ingredient);
 						empty = false;
 					}
 
