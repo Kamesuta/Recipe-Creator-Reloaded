@@ -1,5 +1,6 @@
 package com.fiscalleti.recipecreator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,8 +17,10 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
 
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 
 public class Recipes {
 	public static abstract class RecipeBuilder {
@@ -35,6 +38,10 @@ public class Recipes {
 		public abstract Recipe toRecipe();
 
 		public abstract SerializedRecipe toSerializedRecipe();
+
+		public static abstract class RecipeIngredients<T extends Recipe> {
+			public abstract void applyToRecipe(T appliee);
+		}
 
 		public static class ShapelessRecipeBuilder extends RecipeBuilder {
 			public ShapelessRecipeBuilder(final Player player) {
@@ -81,6 +88,26 @@ public class Recipes {
 				if (recipe==null)
 					return null;
 				return new SerializedRecipe(recipe);
+			}
+
+			public static class ShapelessRecipeIngredients extends RecipeIngredients<ShapelessRecipe> {
+				private List<MaterialData> ingredients = Lists.newArrayList();
+
+				public void addIngredient(final MaterialData ingredient) {
+					if (ingredient==null||ingredient.getItemType()==Material.AIR)
+						return;
+					this.ingredients.add(ingredient);
+				}
+
+				public List<MaterialData> getIngredients() {
+					return Collections.unmodifiableList(this.ingredients);
+				}
+
+				@Override
+				public void applyToRecipe(final ShapelessRecipe appliee) {
+					for (final MaterialData data : this.ingredients)
+						appliee.addIngredient(data);
+				}
 			}
 		}
 
@@ -149,14 +176,17 @@ public class Recipes {
 
 				recipe.shape(shapestr);
 
-				for (final Entry<Character, MaterialData> ingred : ingreds.entrySet())
-					recipe.setIngredient(ingred.getKey(), ingred.getValue());
+				for (final Entry<Character, MaterialData> ingred : ingreds.entrySet()) {
+					final Character key = ingred.getKey();
+					if (!Character.isWhitespace(key))
+						recipe.setIngredient(key, ingred.getValue());
+				}
 
 				return recipe;
 			}
 
 			@Override
-			public final SerializedRecipe toSerializedRecipe() {
+			public SerializedRecipe toSerializedRecipe() {
 				final ShapedRecipe recipe = toRecipe();
 				if (recipe==null)
 					return null;
@@ -165,6 +195,63 @@ public class Recipes {
 
 			protected Character[][] processShape(final Character[][] shape) {
 				return shape;
+			}
+
+			public static class ShapedRecipeIngredients extends RecipeIngredients<ShapedRecipe> {
+				private final Table<Integer, Integer, Character> shape = HashBasedTable.create();
+				private Map<MaterialData, Character> ingredientUnique = Maps.newHashMap();
+				private Map<Character, MaterialData> ingredients = Maps.newHashMap();
+
+				public void setIngredient(final int x, final int y, Character key, final MaterialData ingredient) {
+					if (!(0<=x&&x<3&&0<=y&&y<3))
+						return;
+					if (ingredient==null||ingredient.getItemType()==Material.AIR)
+						return;
+					final Character ukey = this.ingredientUnique.get(ingredient);
+					if (ukey==null)
+						this.ingredientUnique.put(ingredient, key);
+					else
+						key = ukey;
+					this.shape.put(x, y, key);
+					this.ingredients.put(key, ingredient);
+				}
+
+				private Character getShapeCharacter(final int x, final int y) {
+					final Character material = this.shape.get(x, y);
+					if (material!=null)
+						return material;
+					return ' ';
+				}
+
+				public Character[][] getShapeTable() {
+					final Character[][] shapes = new Character[3][3];
+					for (int y = 0; y<3; y++)
+						for (int x = 0; x<3; x++)
+							shapes[y][x] = getShapeCharacter(x, y);
+					return shapes;
+				}
+
+				public String[] getShapeString() {
+					final Character[][] shape = getShapeTable();
+					final String[] shapestr = new String[shape.length];
+					for (int i = 0; i<shape.length; i++)
+						shapestr[i] = StringUtils.join(shape[i]);
+					return shapestr;
+				}
+
+				public Map<Character, MaterialData> getIngredients() {
+					return Collections.unmodifiableMap(this.ingredients);
+				}
+
+				@Override
+				public void applyToRecipe(final ShapedRecipe appliee) {
+					appliee.shape(getShapeString());
+					for (final Entry<Character, MaterialData> ingred : this.ingredients.entrySet()) {
+						final Character key = ingred.getKey();
+						if (!Character.isWhitespace(key))
+							appliee.setIngredient(key, ingred.getValue());
+					}
+				}
 			}
 		}
 
@@ -201,6 +288,40 @@ public class Recipes {
 						trimed[i][j] = shape[i+vx][j+vy];
 				return trimed;
 			}
+
+			public static class TrimmedShapedRecipeIngredients extends ShapedRecipeIngredients {
+				@Override
+				public Character[][] getShapeTable() {
+					return processShape(super.getShapeTable());
+				}
+
+				public static Character[][] processShape(final Character[][] shape) {
+					int sx = 0;
+					int sy = 0;
+					int vx = -1;
+					int vy = -1;
+					for (int i = 0; i<shape.length; i++)
+						for (int j = 0; j<shape[0].length; j++) {
+							if (!Character.isWhitespace(shape[i][j])) {
+								if (vx<0)
+									vx = i;
+								sx = Math.max(sx, i+1-vx);
+							}
+							if (!Character.isWhitespace(shape[j][i])) {
+								if (vy<0)
+									vy = i;
+								sy = Math.max(sy, i+1-vy);
+							}
+						}
+					if (shape.length>0&&sx==shape[0].length&&sy==shape.length)
+						return shape;
+					final Character[][] trimed = new Character[sx][sy];
+					for (int i = 0; i<sx; i++)
+						for (int j = 0; j<sy; j++)
+							trimed[i][j] = shape[i+vx][j+vy];
+					return trimed;
+				}
+			}
 		}
 
 		public static class FurnaceRecipeBuilder extends RecipeBuilder {
@@ -229,6 +350,24 @@ public class Recipes {
 				if (recipe==null)
 					return null;
 				return new SerializedRecipe(recipe);
+			}
+
+			public static class FurnaceRecipeIngredients extends RecipeIngredients<FurnaceRecipe> {
+				private MaterialData ingredient;
+
+				public void setIngredient(final MaterialData input) {
+					this.ingredient = input;
+				}
+
+				public MaterialData getIngredient() {
+					return this.ingredient;
+				}
+
+				@Override
+				public void applyToRecipe(final FurnaceRecipe appliee) {
+					if (this.ingredient!=null)
+						appliee.setInput(this.ingredient);
+				}
 			}
 		}
 	}

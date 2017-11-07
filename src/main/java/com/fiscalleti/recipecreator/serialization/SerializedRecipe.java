@@ -82,7 +82,25 @@ public class SerializedRecipe implements Serializable {
 	}
 
 	public static boolean recipeEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
-		if (recipe0==null&&recipe1==null)
+		return resultEquals(recipe0, recipe1)&&ingredientEquals(recipe0, recipe1);
+	}
+
+	public static boolean resultEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
+		if (recipe0==recipe1||recipe0==null&&recipe1==null)
+			return true;
+		if (recipe0==null||recipe1==null)
+			return false;
+		final Recipe recipe00 = recipe0.getRecipe();
+		final Recipe recipe01 = recipe1.getRecipe();
+		if (recipe00==null||recipe01==null)
+			return false;
+		final ItemStack item0 = recipe00.getResult();
+		final ItemStack item1 = recipe01.getResult();
+		return item0.equals(item1);
+	}
+
+	public static boolean ingredientEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
+		if (recipe0==recipe1||recipe0==null&&recipe1==null)
 			return true;
 		if (recipe0==null||recipe1==null)
 			return false;
@@ -92,12 +110,12 @@ public class SerializedRecipe implements Serializable {
 			return false;
 		final Recipe recipe00 = recipe0.getRecipe();
 		final Recipe recipe01 = recipe1.getRecipe();
+		if (recipe00==null||recipe01==null)
+			return false;
 		switch (type0) {
 			case SHAPED:
 				final ShapedRecipe recipe10 = (ShapedRecipe) recipe00;
 				final ShapedRecipe recipe11 = (ShapedRecipe) recipe01;
-				if (!recipe10.getResult().equals(recipe11.getResult()))
-					return false;
 				final String[] shape0 = recipe10.getShape();
 				final String[] shape1 = recipe11.getShape();
 				if (shape0.length!=shape1.length)
@@ -120,8 +138,6 @@ public class SerializedRecipe implements Serializable {
 			case SHAPELESS:
 				final ShapelessRecipe recipe20 = (ShapelessRecipe) recipe00;
 				final ShapelessRecipe recipe21 = (ShapelessRecipe) recipe01;
-				if (!recipe20.getResult().equals(recipe21.getResult()))
-					return false;
 				final List<ItemStack> list0 = recipe20.getIngredientList();
 				final List<ItemStack> list1 = recipe21.getIngredientList();
 				final int list0size = list0.size();
@@ -137,7 +153,9 @@ public class SerializedRecipe implements Serializable {
 			case FURNACE:
 				final FurnaceRecipe recipe30 = (FurnaceRecipe) recipe00;
 				final FurnaceRecipe recipe31 = (FurnaceRecipe) recipe01;
-				return recipe30.getResult().equals(recipe31.getResult())&&recipe30.getInput().getData().equals(recipe31.getInput().getData());
+				if (!recipe30.getInput().getData().equals(recipe31.getInput().getData()))
+					return false;
+				return true;
 			default:
 				return false;
 		}
