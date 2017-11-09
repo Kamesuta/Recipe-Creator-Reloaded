@@ -30,17 +30,84 @@ public class Recipes {
 			this.player = player;
 		}
 
-		protected ItemStack item(final int slot) {
-			final ItemStack itemStack = this.player.getInventory().getItem(slot);
-			return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
-		}
-
 		public abstract Recipe toRecipe();
 
 		public abstract SerializedRecipe toSerializedRecipe();
 
-		public static abstract class RecipeIngredients<T extends Recipe> {
+		public static abstract class PlayerRecipe<T extends Recipe> {
+			public abstract boolean isValid();
+
+			public abstract void fromInventoryItem(Player player);
+
+			public abstract void fromRecipe(T recipe);
+
+			protected static ItemStack slotItem(final Player player, final int slot) {
+				final ItemStack itemStack = player.getInventory().getItem(slot);
+				return itemStack!=null ? itemStack : new ItemStack(Material.AIR, 1);
+			}
+		}
+
+		public static abstract class RecipeIngredients<T extends Recipe> extends PlayerRecipe<T> {
 			public abstract void applyToRecipe(T appliee);
+		}
+
+		public static class RecipeOutput extends PlayerRecipe<Recipe> {
+			private ItemStack result;
+
+			public RecipeOutput() {
+			}
+
+			@Override
+			public boolean isValid() {
+				return this.result!=null;
+			}
+
+			public void setResult(final ItemStack result) {
+				if (result==null||result.getType()==Material.AIR)
+					return;
+				this.result = result;
+			}
+
+			public ItemStack getResult() {
+				return this.result;
+			}
+
+			@Override
+			public void fromInventoryItem(final Player player) {
+				setResult(slotItem(player, 17));
+			}
+
+			@Override
+			public void fromRecipe(final Recipe recipe) {
+				final ItemStack itemStack = recipe.getResult();
+				if (itemStack!=null&&itemStack.getType()!=Material.AIR)
+					setResult(itemStack);
+			}
+
+			@Override
+			public int hashCode() {
+				final int prime = 31;
+				int result = 1;
+				result = prime*result+(this.result==null ? 0 : this.result.hashCode());
+				return result;
+			}
+
+			@Override
+			public boolean equals(final Object obj) {
+				if (this==obj)
+					return true;
+				if (obj==null)
+					return false;
+				if (!(obj instanceof RecipeOutput))
+					return false;
+				final RecipeOutput other = (RecipeOutput) obj;
+				if (this.result==null) {
+					if (other.result!=null)
+						return false;
+				} else if (!this.result.equals(other.result))
+					return false;
+				return true;
+			}
 		}
 
 		public static class ShapelessRecipeBuilder extends RecipeBuilder {
@@ -50,34 +117,17 @@ public class Recipes {
 
 			@Override
 			public ShapelessRecipe toRecipe() {
-				final List<MaterialData> ingredients = Lists.newArrayList();
+				final ShapelessRecipeIngredients ingredients = new ShapelessRecipeIngredients();
+				final RecipeOutput output = new RecipeOutput();
 
-				//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
-				ingredients.add(item(9).getData());
-				ingredients.add(item(10).getData());
-				ingredients.add(item(11).getData());
+				ingredients.fromInventoryItem(this.player);
+				output.fromInventoryItem(this.player);
 
-				ingredients.add(item(18).getData());
-				ingredients.add(item(19).getData());
-				ingredients.add(item(20).getData());
-
-				ingredients.add(item(27).getData());
-				ingredients.add(item(28).getData());
-				ingredients.add(item(29).getData());
-
-				final ItemStack out = item(17);
-
-				final ShapelessRecipe recipe = new ShapelessRecipe(out);
-
-				boolean empty = true;
-				for (final MaterialData ingredient : ingredients)
-					if (ingredient.getItemType()!=Material.AIR) {
-						recipe.addIngredient(ingredient);
-						empty = false;
-					}
-
-				if (empty||out.getType()==Material.AIR)
+				if (!ingredients.isValid()||!output.isValid())
 					return null;
+
+				final ShapelessRecipe recipe = new ShapelessRecipe(output.getResult());
+				ingredients.applyToRecipe(recipe);
 
 				return recipe;
 			}
@@ -104,9 +154,65 @@ public class Recipes {
 				}
 
 				@Override
+				public boolean isValid() {
+					return !this.ingredients.isEmpty();
+				}
+
+				@Override
 				public void applyToRecipe(final ShapelessRecipe appliee) {
 					for (final MaterialData data : this.ingredients)
 						appliee.addIngredient(data);
+				}
+
+				@Override
+				public void fromInventoryItem(final Player player) {
+					//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
+					addIngredient(slotItem(player, 9).getData());
+					addIngredient(slotItem(player, 10).getData());
+					addIngredient(slotItem(player, 11).getData());
+
+					addIngredient(slotItem(player, 18).getData());
+					addIngredient(slotItem(player, 19).getData());
+					addIngredient(slotItem(player, 20).getData());
+
+					addIngredient(slotItem(player, 27).getData());
+					addIngredient(slotItem(player, 28).getData());
+					addIngredient(slotItem(player, 29).getData());
+				}
+
+				@Override
+				public void fromRecipe(final ShapelessRecipe recipe) {
+					for (final ItemStack ingredient : recipe.getIngredientList())
+						if (ingredient!=null&&ingredient.getType()!=Material.AIR)
+							addIngredient(ingredient.getData());
+				}
+
+				@Override
+				public boolean equals(final Object obj) {
+					if (this==obj)
+						return true;
+					if (obj==null)
+						return false;
+					if (!(obj instanceof ShapelessRecipeIngredients))
+						return false;
+					final ShapelessRecipeIngredients other = (ShapelessRecipeIngredients) obj;
+					if (this.ingredients==null) {
+						if (other.ingredients!=null)
+							return false;
+					} else {
+						final List<MaterialData> list0 = getIngredients();
+						final List<MaterialData> list1 = other.getIngredients();
+						final int list0size = list0.size();
+						if (list0size!=list1.size())
+							return false;
+						for (int i = 0; i<list0size; i++) {
+							final MaterialData item10 = list0.get(i);
+							final MaterialData item11 = list1.get(i);
+							if (item10.equals(item11))
+								return false;
+						}
+					}
+					return true;
 				}
 			}
 		}
@@ -118,69 +224,17 @@ public class Recipes {
 
 			@Override
 			public ShapedRecipe toRecipe() {
-				final Map<Character, MaterialData> map = Maps.newHashMap();
+				final ShapedRecipeIngredients ingredients = new ShapedRecipeIngredients();
+				final RecipeOutput output = new RecipeOutput();
 
-				//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
-				map.put('a', item(9).getData());
-				map.put('b', item(10).getData());
-				map.put('c', item(11).getData());
+				ingredients.fromInventoryItem(this.player);
+				output.fromInventoryItem(this.player);
 
-				map.put('d', item(18).getData());
-				map.put('e', item(19).getData());
-				map.put('f', item(20).getData());
-
-				map.put('g', item(27).getData());
-				map.put('h', item(28).getData());
-				map.put('i', item(29).getData());
-
-				final ItemStack out = item(17);
-
-				boolean empty = true;
-				for (final MaterialData material : map.values())
-					if (material.getItemType()!=Material.AIR) {
-						empty = false;
-						break;
-					}
-
-				if (empty||out.getType()==Material.AIR)
+				if (!ingredients.isValid()||!output.isValid())
 					return null;
 
-				final Map<MaterialData, Character> inverses = Maps.newHashMap();
-				for (final Entry<Character, MaterialData> entry : map.entrySet())
-					inverses.put(entry.getValue(), entry.getKey());
-
-				final Map<Character, MaterialData> ingreds = Maps.newHashMap();
-				final Map<Character, Character> charmap = Maps.newHashMap();
-				for (final Entry<Character, MaterialData> entry : map.entrySet()) {
-					final Character key = entry.getKey();
-					final MaterialData value = entry.getValue();
-					if (value.getItemType()!=Material.AIR) {
-						final Character ukey = inverses.get(value);
-						charmap.put(key, ukey);
-						ingreds.put(ukey, value);
-					} else
-						charmap.put(key, ' ');
-				}
-
-				final Character[][] shape = processShape(new Character[][] {
-						new Character[] { charmap.get('a'), charmap.get('b'), charmap.get('c') },
-						new Character[] { charmap.get('d'), charmap.get('e'), charmap.get('f') },
-						new Character[] { charmap.get('g'), charmap.get('h'), charmap.get('i') },
-				});
-
-				final ShapedRecipe recipe = new ShapedRecipe(out);
-
-				final String[] shapestr = new String[shape.length];
-				for (int i = 0; i<shape.length; i++)
-					shapestr[i] = StringUtils.join(shape[i]);
-
-				recipe.shape(shapestr);
-
-				for (final Entry<Character, MaterialData> ingred : ingreds.entrySet()) {
-					final Character key = ingred.getKey();
-					if (!Character.isWhitespace(key))
-						recipe.setIngredient(key, ingred.getValue());
-				}
+				final ShapedRecipe recipe = new ShapedRecipe(output.getResult());
+				ingredients.applyToRecipe(recipe);
 
 				return recipe;
 			}
@@ -244,6 +298,11 @@ public class Recipes {
 				}
 
 				@Override
+				public boolean isValid() {
+					return !this.ingredients.isEmpty();
+				}
+
+				@Override
 				public void applyToRecipe(final ShapedRecipe appliee) {
 					appliee.shape(getShapeString());
 					for (final Entry<Character, MaterialData> ingred : this.ingredients.entrySet()) {
@@ -252,41 +311,98 @@ public class Recipes {
 							appliee.setIngredient(key, ingred.getValue());
 					}
 				}
+
+				@Override
+				public void fromInventoryItem(final Player player) {
+					//9, 10, 11, 18, 19, 20, 27, 28, 29 .. 17
+					setIngredient(0, 0, 'a', slotItem(player, 9).getData());
+					setIngredient(1, 0, 'b', slotItem(player, 10).getData());
+					setIngredient(2, 0, 'c', slotItem(player, 11).getData());
+
+					setIngredient(0, 1, 'd', slotItem(player, 18).getData());
+					setIngredient(1, 1, 'e', slotItem(player, 19).getData());
+					setIngredient(2, 1, 'f', slotItem(player, 20).getData());
+
+					setIngredient(0, 2, 'g', slotItem(player, 27).getData());
+					setIngredient(1, 2, 'h', slotItem(player, 28).getData());
+					setIngredient(2, 2, 'i', slotItem(player, 29).getData());
+				}
+
+				@Override
+				public void fromRecipe(final ShapedRecipe recipe) {
+					final Map<Character, ItemStack> ingredients = recipe.getIngredientMap();
+					int y = 0;
+					for (final String shapestr : recipe.getShape()) {
+						int x = 0;
+						for (final char key : shapestr.toCharArray()) {
+							if (!Character.isWhitespace(key)) {
+								final ItemStack ingredient = ingredients.get(key);
+								if (ingredient!=null&&ingredient.getType()!=Material.AIR)
+									setIngredient(x, y, key, ingredient.getData());
+							}
+							x++;
+						}
+						y++;
+					}
+				}
+
+				@Override
+				public boolean equals(final Object obj) {
+					if (this==obj)
+						return true;
+					if (obj==null)
+						return false;
+					if (!(obj instanceof ShapedRecipeIngredients))
+						return false;
+					final ShapedRecipeIngredients other = (ShapedRecipeIngredients) obj;
+					if (this.ingredients==null) {
+						if (other.ingredients!=null)
+							return false;
+					} else {
+						final Character[][] shape0 = getShapeTable();
+						final Character[][] shape1 = other.getShapeTable();
+						if (shape0.length!=shape1.length)
+							return false;
+						final Map<Character, MaterialData> map0 = getIngredients();
+						final Map<Character, MaterialData> map1 = other.getIngredients();
+						for (int i = 0; i<shape0.length; i++) {
+							final Character[] shape10 = shape0[i];
+							final Character[] shape11 = shape1[i];
+							if (shape10.length!=shape11.length)
+								return false;
+							for (int j = 0; j<shape10.length; j++) {
+								final MaterialData item10 = map0.get(shape10[j]);
+								final MaterialData item11 = map1.get(shape11[j]);
+								if (item10.equals(item11))
+									return false;
+							}
+						}
+					}
+					return true;
+				}
 			}
 		}
 
 		public static class TrimmedShapedRecipeBuilder extends ShapedRecipeBuilder {
-
 			public TrimmedShapedRecipeBuilder(final Player player) {
 				super(player);
 			}
 
 			@Override
-			protected Character[][] processShape(final Character[][] shape) {
-				int sx = 0;
-				int sy = 0;
-				int vx = -1;
-				int vy = -1;
-				for (int i = 0; i<shape.length; i++)
-					for (int j = 0; j<shape[0].length; j++) {
-						if (!Character.isWhitespace(shape[i][j])) {
-							if (vx<0)
-								vx = i;
-							sx = Math.max(sx, i+1-vx);
-						}
-						if (!Character.isWhitespace(shape[j][i])) {
-							if (vy<0)
-								vy = i;
-							sy = Math.max(sy, i+1-vy);
-						}
-					}
-				if (shape.length>0&&sx==shape[0].length&&sy==shape.length)
-					return shape;
-				final Character[][] trimed = new Character[sx][sy];
-				for (int i = 0; i<sx; i++)
-					for (int j = 0; j<sy; j++)
-						trimed[i][j] = shape[i+vx][j+vy];
-				return trimed;
+			public ShapedRecipe toRecipe() {
+				final TrimmedShapedRecipeIngredients ingredients = new TrimmedShapedRecipeIngredients();
+				final RecipeOutput output = new RecipeOutput();
+
+				ingredients.fromInventoryItem(this.player);
+				output.fromInventoryItem(this.player);
+
+				if (!ingredients.isValid()||!output.isValid())
+					return null;
+
+				final ShapedRecipe recipe = new ShapedRecipe(output.getResult());
+				ingredients.applyToRecipe(recipe);
+
+				return recipe;
 			}
 
 			public static class TrimmedShapedRecipeIngredients extends ShapedRecipeIngredients {
@@ -331,15 +447,16 @@ public class Recipes {
 
 			@Override
 			public FurnaceRecipe toRecipe() {
-				final MaterialData in = item(29).getData();
-				final ItemStack out = item(17);
+				final FurnaceRecipeIngredients ingredients = new FurnaceRecipeIngredients();
+				final RecipeOutput output = new RecipeOutput();
 
-				if (in.getItemType()==Material.AIR||out.getType()==Material.AIR) {
-					this.player.sendMessage(ChatColor.RED+"Bad recipe contruction in inventory");
+				ingredients.fromInventoryItem(this.player);
+				output.fromInventoryItem(this.player);
+
+				if (!ingredients.isValid()||!output.isValid())
 					return null;
-				}
 
-				final FurnaceRecipe recipe = new FurnaceRecipe(out, in);
+				final FurnaceRecipe recipe = new FurnaceRecipe(output.getResult(), ingredients.getIngredient());
 
 				return recipe;
 			}
@@ -356,6 +473,8 @@ public class Recipes {
 				private MaterialData ingredient;
 
 				public void setIngredient(final MaterialData input) {
+					if (this.ingredient==null||this.ingredient.getItemType()==Material.AIR)
+						return;
 					this.ingredient = input;
 				}
 
@@ -364,9 +483,51 @@ public class Recipes {
 				}
 
 				@Override
+				public boolean isValid() {
+					return this.ingredient!=null;
+				}
+
+				@Override
 				public void applyToRecipe(final FurnaceRecipe appliee) {
 					if (this.ingredient!=null)
 						appliee.setInput(this.ingredient);
+				}
+
+				@Override
+				public void fromInventoryItem(final Player player) {
+					setIngredient(slotItem(player, 29).getData());
+				}
+
+				@Override
+				public void fromRecipe(final FurnaceRecipe recipe) {
+					final ItemStack itemStack = recipe.getInput();
+					if (itemStack!=null&&itemStack.getType()!=Material.AIR)
+						setIngredient(itemStack.getData());
+				}
+
+				@Override
+				public int hashCode() {
+					final int prime = 31;
+					int result = 1;
+					result = prime*result+(this.ingredient==null ? 0 : this.ingredient.hashCode());
+					return result;
+				}
+
+				@Override
+				public boolean equals(final Object obj) {
+					if (this==obj)
+						return true;
+					if (obj==null)
+						return false;
+					if (!(obj instanceof FurnaceRecipeIngredients))
+						return false;
+					final FurnaceRecipeIngredients other = (FurnaceRecipeIngredients) obj;
+					if (this.ingredient==null) {
+						if (other.ingredient!=null)
+							return false;
+					} else if (!this.ingredient.equals(other.ingredient))
+						return false;
+					return true;
 				}
 			}
 		}
