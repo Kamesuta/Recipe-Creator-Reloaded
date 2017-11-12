@@ -2,6 +2,7 @@ package com.fiscalleti.recipecreator;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -21,6 +22,8 @@ import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.fiscalleti.recipecreator.Recipes.RecipeBuilder;
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.RecipeIngredients;
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.RecipeResult;
 import com.fiscalleti.recipecreator.serialization.RecipeStorage;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe.RecipeType;
@@ -94,7 +97,7 @@ public class RecipeCreator extends JavaPlugin {
 			if (hasPermission(sender, "recipecreator.info"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe info <recipe-name>: "+ChatColor.WHITE+"Retrieves a recipes information");
 			if (hasPermission(sender, "recipecreator.lookup"))
-				sender.sendMessage(ChatColor.GOLD+"/recipe lookup <ITEM_NAME>: "+ChatColor.WHITE+"Retrieves an items Recipe ID's");
+				sender.sendMessage(ChatColor.GOLD+"/recipe lookup [result/ingredient/recipe]: "+ChatColor.WHITE+"Retrieves an items Recipe ID's");
 			if (hasPermission(sender, "recipecreator.reset"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe reset: "+ChatColor.WHITE+"Resets the recipes to default");
 			if (hasPermission(sender, "recipecreator.reload"))
@@ -208,23 +211,32 @@ public class RecipeCreator extends JavaPlugin {
 					}
 					final String argument = args[2];
 
-					SerializedRecipe recipe;
+					RecipeBuilder recipebuilder;
 					if (argument.equalsIgnoreCase("shapeless"))
-						recipe = new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.ShapelessRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("shaped"))
-						recipe = new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.ShapedRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("shaped_trim"))
-						recipe = new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.TrimmedShapedRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("furnace"))
-						recipe = new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.FurnaceRecipeBuilder(player);
 					else {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup ingredient <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
 
-					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet())
-						if (SerializedRecipe.ingredientEquals(recipe, entry.getValue()))
+					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
+					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+						final SerializedRecipe recipe0 = entry.getValue();
+						if (recipe0==null)
+							continue;
+						final Recipe recipe1 = recipe0.getRecipe();
+						if (recipe1==null)
+							continue;
+						final RecipeIngredients<?> ingredients1 = RecipeIngredients.createFromRecipe(recipe1);
+						if (Objects.equals(ingredients, ingredients1))
 							rets.add(entry.getKey());
+					}
 				} else if (type.equalsIgnoreCase("recipe")) {
 					if (args.length<=2) {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup recipe <shaped/shaped_trim/shapeless/furnace>");
@@ -232,23 +244,34 @@ public class RecipeCreator extends JavaPlugin {
 					}
 					final String argument = args[2];
 
-					SerializedRecipe recipe;
+					RecipeBuilder recipebuilder;
 					if (argument.equalsIgnoreCase("shapeless"))
-						recipe = new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.ShapelessRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("shaped"))
-						recipe = new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.ShapedRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("shaped_trim"))
-						recipe = new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.TrimmedShapedRecipeBuilder(player);
 					else if (argument.equalsIgnoreCase("furnace"))
-						recipe = new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe();
+						recipebuilder = new RecipeBuilder.FurnaceRecipeBuilder(player);
 					else {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup ingredient <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
 
-					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet())
-						if (SerializedRecipe.recipeEquals(recipe, entry.getValue()))
+					final RecipeResult result = recipebuilder.toResult();
+					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
+					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+						final SerializedRecipe recipe0 = entry.getValue();
+						if (recipe0==null)
+							continue;
+						final Recipe recipe1 = recipe0.getRecipe();
+						if (recipe1==null)
+							continue;
+						final RecipeResult result1 = RecipeResult.createFromRecipe(recipe1);
+						final RecipeIngredients<?> ingredients1 = RecipeIngredients.createFromRecipe(recipe1);
+						if (Objects.equals(result, result1)&&Objects.equals(ingredients, ingredients1))
 							rets.add(entry.getKey());
+					}
 				} else {
 					sender.sendMessage(ChatColor.RED+"/recipe lookup [result/ingredient/recipe]");
 					return true;

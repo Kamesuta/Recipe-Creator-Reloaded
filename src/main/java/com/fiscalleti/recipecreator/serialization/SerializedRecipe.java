@@ -51,16 +51,6 @@ public class SerializedRecipe implements Serializable {
 		this.furnace_recipe = recipe;
 	}
 
-	public Recipe getRecipe() {
-		if (this.shaped_recipe!=null)
-			return this.shaped_recipe;
-		else if (this.shapeless_recipe!=null)
-			return this.shapeless_recipe;
-		else if (this.furnace_recipe!=null)
-			return this.furnace_recipe;
-		return null;
-	}
-
 	public RecipeType getType() {
 		if (this.shaped_recipe!=null)
 			return RecipeType.SHAPED;
@@ -68,6 +58,22 @@ public class SerializedRecipe implements Serializable {
 			return RecipeType.SHAPELESS;
 		else if (this.furnace_recipe!=null)
 			return RecipeType.FURNACE;
+		return null;
+	}
+
+	public Recipe getRecipe() {
+		final RecipeType type = getType();
+		if (type!=null)
+			switch (type) {
+				case SHAPED:
+					return this.shaped_recipe;
+				case SHAPELESS:
+					return this.shapeless_recipe;
+				case FURNACE:
+					return this.furnace_recipe;
+				default:
+					break;
+			}
 		return null;
 	}
 

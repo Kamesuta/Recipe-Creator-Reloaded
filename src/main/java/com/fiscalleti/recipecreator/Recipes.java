@@ -16,6 +16,9 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
 
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients;
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients;
+import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients;
 import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
@@ -29,6 +32,14 @@ public class Recipes {
 		public RecipeBuilder(final Player player) {
 			this.player = player;
 		}
+
+		public RecipeResult toResult() {
+			final RecipeResult output = new RecipeResult();
+			output.fromInventoryItem(this.player);
+			return output;
+		}
+
+		public abstract RecipeIngredients<? extends Recipe> toIngredients();
 
 		public abstract Recipe toRecipe();
 
@@ -48,13 +59,30 @@ public class Recipes {
 		}
 
 		public static abstract class RecipeIngredients<T extends Recipe> extends PlayerRecipe<T> {
-			public abstract void applyToRecipe(T appliee);
+			public abstract void toRecipe(T appliee);
+
+			public static RecipeIngredients<? extends Recipe> createFromRecipe(final Recipe recipe) {
+				if (recipe instanceof ShapedRecipe) {
+					final ShapedRecipeIngredients ingredients = new ShapedRecipeIngredients();
+					ingredients.fromRecipe((ShapedRecipe) recipe);
+					return ingredients;
+				} else if (recipe instanceof ShapelessRecipe) {
+					final ShapelessRecipeIngredients ingredients = new ShapelessRecipeIngredients();
+					ingredients.fromRecipe((ShapelessRecipe) recipe);
+					return ingredients;
+				} else if (recipe instanceof FurnaceRecipe) {
+					final FurnaceRecipeIngredients ingredients = new FurnaceRecipeIngredients();
+					ingredients.fromRecipe((FurnaceRecipe) recipe);
+					return ingredients;
+				}
+				return null;
+			};
 		}
 
-		public static class RecipeOutput extends PlayerRecipe<Recipe> {
+		public static class RecipeResult extends PlayerRecipe<Recipe> {
 			private ItemStack result;
 
-			public RecipeOutput() {
+			public RecipeResult() {
 			}
 
 			@Override
@@ -75,6 +103,12 @@ public class Recipes {
 			@Override
 			public void fromInventoryItem(final Player player) {
 				setResult(slotItem(player, 17));
+			}
+
+			public static RecipeResult createFromRecipe(final Recipe recipe) {
+				final RecipeResult result = new RecipeResult();
+				result.fromRecipe(recipe);
+				return result;
 			}
 
 			@Override
@@ -98,9 +132,9 @@ public class Recipes {
 					return true;
 				if (obj==null)
 					return false;
-				if (!(obj instanceof RecipeOutput))
+				if (!(obj instanceof RecipeResult))
 					return false;
-				final RecipeOutput other = (RecipeOutput) obj;
+				final RecipeResult other = (RecipeResult) obj;
 				if (this.result==null) {
 					if (other.result!=null)
 						return false;
@@ -116,18 +150,22 @@ public class Recipes {
 			}
 
 			@Override
-			public ShapelessRecipe toRecipe() {
+			public ShapelessRecipeIngredients toIngredients() {
 				final ShapelessRecipeIngredients ingredients = new ShapelessRecipeIngredients();
-				final RecipeOutput output = new RecipeOutput();
-
 				ingredients.fromInventoryItem(this.player);
-				output.fromInventoryItem(this.player);
+				return ingredients;
+			}
+
+			@Override
+			public ShapelessRecipe toRecipe() {
+				final ShapelessRecipeIngredients ingredients = toIngredients();
+				final RecipeResult output = toResult();
 
 				if (!ingredients.isValid()||!output.isValid())
 					return null;
 
 				final ShapelessRecipe recipe = new ShapelessRecipe(output.getResult());
-				ingredients.applyToRecipe(recipe);
+				ingredients.toRecipe(recipe);
 
 				return recipe;
 			}
@@ -159,7 +197,7 @@ public class Recipes {
 				}
 
 				@Override
-				public void applyToRecipe(final ShapelessRecipe appliee) {
+				public void toRecipe(final ShapelessRecipe appliee) {
 					for (final MaterialData data : this.ingredients)
 						appliee.addIngredient(data);
 				}
@@ -223,18 +261,22 @@ public class Recipes {
 			}
 
 			@Override
-			public ShapedRecipe toRecipe() {
+			public ShapedRecipeIngredients toIngredients() {
 				final ShapedRecipeIngredients ingredients = new ShapedRecipeIngredients();
-				final RecipeOutput output = new RecipeOutput();
-
 				ingredients.fromInventoryItem(this.player);
-				output.fromInventoryItem(this.player);
+				return ingredients;
+			}
+
+			@Override
+			public ShapedRecipe toRecipe() {
+				final ShapedRecipeIngredients ingredients = toIngredients();
+				final RecipeResult output = toResult();
 
 				if (!ingredients.isValid()||!output.isValid())
 					return null;
 
 				final ShapedRecipe recipe = new ShapedRecipe(output.getResult());
-				ingredients.applyToRecipe(recipe);
+				ingredients.toRecipe(recipe);
 
 				return recipe;
 			}
@@ -303,7 +345,7 @@ public class Recipes {
 				}
 
 				@Override
-				public void applyToRecipe(final ShapedRecipe appliee) {
+				public void toRecipe(final ShapedRecipe appliee) {
 					appliee.shape(getShapeString());
 					for (final Entry<Character, MaterialData> ingred : this.ingredients.entrySet()) {
 						final Character key = ingred.getKey();
@@ -389,20 +431,10 @@ public class Recipes {
 			}
 
 			@Override
-			public ShapedRecipe toRecipe() {
+			public ShapedRecipeIngredients toIngredients() {
 				final TrimmedShapedRecipeIngredients ingredients = new TrimmedShapedRecipeIngredients();
-				final RecipeOutput output = new RecipeOutput();
-
 				ingredients.fromInventoryItem(this.player);
-				output.fromInventoryItem(this.player);
-
-				if (!ingredients.isValid()||!output.isValid())
-					return null;
-
-				final ShapedRecipe recipe = new ShapedRecipe(output.getResult());
-				ingredients.applyToRecipe(recipe);
-
-				return recipe;
+				return ingredients;
 			}
 
 			public static class TrimmedShapedRecipeIngredients extends ShapedRecipeIngredients {
@@ -446,12 +478,16 @@ public class Recipes {
 			}
 
 			@Override
-			public FurnaceRecipe toRecipe() {
+			public FurnaceRecipeIngredients toIngredients() {
 				final FurnaceRecipeIngredients ingredients = new FurnaceRecipeIngredients();
-				final RecipeOutput output = new RecipeOutput();
-
 				ingredients.fromInventoryItem(this.player);
-				output.fromInventoryItem(this.player);
+				return ingredients;
+			}
+
+			@Override
+			public FurnaceRecipe toRecipe() {
+				final FurnaceRecipeIngredients ingredients = toIngredients();
+				final RecipeResult output = toResult();
 
 				if (!ingredients.isValid()||!output.isValid())
 					return null;
@@ -488,7 +524,7 @@ public class Recipes {
 				}
 
 				@Override
-				public void applyToRecipe(final FurnaceRecipe appliee) {
+				public void toRecipe(final FurnaceRecipe appliee) {
 					if (this.ingredient!=null)
 						appliee.setInput(this.ingredient);
 				}
