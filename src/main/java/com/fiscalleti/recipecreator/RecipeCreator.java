@@ -123,7 +123,12 @@ public class RecipeCreator extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe());
+					final SerializedRecipe recipe = new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe();
+					if (recipe==null) {
+						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
+						return true;
+					}
+					Recipes.add(ChatOutput.create(player), name, recipe);
 					return true;
 				}
 
@@ -132,7 +137,12 @@ public class RecipeCreator extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe());
+					final SerializedRecipe recipe = new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe();
+					if (recipe==null) {
+						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
+						return true;
+					}
+					Recipes.add(ChatOutput.create(player), name, recipe);
 					return true;
 				}
 
@@ -141,7 +151,12 @@ public class RecipeCreator extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe());
+					final SerializedRecipe recipe = new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe();
+					if (recipe==null) {
+						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
+						return true;
+					}
+					Recipes.add(ChatOutput.create(player), name, recipe);
 					return true;
 				}
 
@@ -150,7 +165,12 @@ public class RecipeCreator extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe());
+					final SerializedRecipe recipe = new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe();
+					if (recipe==null) {
+						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
+						return true;
+					}
+					Recipes.add(ChatOutput.create(player), name, recipe);
 					return true;
 				}
 			}
@@ -195,6 +215,11 @@ public class RecipeCreator extends JavaPlugin {
 			final List<String> rets = Lists.newArrayList();
 
 			if (args.length>1) {
+				if ("".isEmpty()) {
+					sender.sendMessage(ChatColor.RED+"This feature is not implemented.i");
+					return true;
+				}
+
 				final String type = args[1];
 
 				if (type.equalsIgnoreCase("result")) {
@@ -229,6 +254,8 @@ public class RecipeCreator extends JavaPlugin {
 					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
 						final SerializedRecipe recipe0 = entry.getValue();
 						if (recipe0==null)
+							continue;
+						if (recipe0.getType()!=recipebuilder.toSerializedRecipe().getType())
 							continue;
 						final Recipe recipe1 = recipe0.getRecipe();
 						if (recipe1==null)
