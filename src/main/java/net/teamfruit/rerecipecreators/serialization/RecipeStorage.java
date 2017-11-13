@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator.serialization;
+package net.teamfruit.rerecipecreators.serialization;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -12,8 +12,9 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
-import com.fiscalleti.recipecreator.RecipeCreator;
 import com.google.common.collect.Maps;
+
+import net.teamfruit.rerecipecreators.ReRecipeCreators;
 
 public class RecipeStorage {
 	private final FilenameFilter recipefilefilter = new FilenameFilter() {
@@ -95,7 +96,7 @@ public class RecipeStorage {
 			ObjectHandler.write(file, SerializedRecipe.class, recipe);
 			return true;
 		} catch (final Exception e) {
-			RecipeCreator.instance.log.log(Level.WARNING, e.getMessage(), e);
+			ReRecipeCreators.instance.log.log(Level.WARNING, e.getMessage(), e);
 		}
 		return false;
 	}
@@ -108,7 +109,7 @@ public class RecipeStorage {
 		try {
 			return ObjectHandler.read(file, SerializedRecipe.class);
 		} catch (final Exception e) {
-			RecipeCreator.instance.log.log(Level.WARNING, e.getMessage(), e);
+			ReRecipeCreators.instance.log.log(Level.WARNING, e.getMessage(), e);
 		}
 		return null;
 	}

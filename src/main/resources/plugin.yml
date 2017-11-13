@@ -1,38 +1,34 @@
-name: RecipeCreator
-version: 1.5
-author: Nathan Fiscaletti
-description: Simple Recipe Creator plugin
-main: com.fiscalleti.recipecreator.RecipeCreator
+name: ReRecipeCreators
+version: 1.6
+author: Kamesuta
+description: Recipe Creator plugin
+main: net.teamfruit.rerecipecreators.ReRecipeCreators
 commands:
     recipe:
         description: Control over system Recipes
         usage: /recipe add | remove | info | lookup | help | reset | reload | permissions
 permissions:
-    recipecreator.add.shaped:
+    rerecipecreators.add.shaped:
         default: op
         description: creates a shaped recipe
-    recipecreator.add.shapeless:
+    rerecipecreators.add.shapeless:
         default: op
-        description: creates a shapeless recipe 
-    recipecreator.info:
+        description: creates a shapeless recipe
+    rerecipecreators.info:
         default: op
         description: retrieves a recipes information
-    recipecreator.lookup:
+    rerecipecreators.lookup:
         default: op
         description: retrieves an items recipe ids
-    recipecreator.remove:
+    rerecipecreators.remove:
         default: op
         description: removes a recipe
-    recipecreator.reload:
+    rerecipecreators.reload:
         default: op
         description: reloads the recipes
-    recipecreator.reset:
-        default: op
-        description: resets recipes to default
-    recipecreator.recipes.*:
+    rerecipecreators.recipes.*:
         default: op
         description: gives player access to all recipes
-    recipecreator.permissioncontrol:
+    rerecipecreators.permissioncontrol:
         default: op
         description: gives a player access to permission managment
-        

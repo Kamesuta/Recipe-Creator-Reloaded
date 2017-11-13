@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator;
+package net.teamfruit.rerecipecreators;
 
 import java.util.Collection;
 import java.util.Set;

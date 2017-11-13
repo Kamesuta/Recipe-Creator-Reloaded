@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator.serialization;
+package net.teamfruit.rerecipecreators.serialization;
 
 import java.io.Serializable;
 import java.util.List;

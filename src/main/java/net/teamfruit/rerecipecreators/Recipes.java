@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator;
+package net.teamfruit.rerecipecreators;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,14 +16,15 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
 
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients;
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients;
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients;
-import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
+
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients;
+import net.teamfruit.rerecipecreators.serialization.SerializedRecipe;
 
 public class Recipes {
 	public static abstract class RecipeBuilder {
@@ -571,31 +572,31 @@ public class Recipes {
 
 	public static void loadRecipes(final ChatOutput output) {
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Loading Recipe Files");
-		RecipeCreator.instance.recipestorage.load();
+		ReRecipeCreators.instance.recipestorage.load();
 		final List<Recipe> recipes = Lists.newArrayList();
-		for (final SerializedRecipe r : RecipeCreator.instance.recipestorage.getRecipes().values())
+		for (final SerializedRecipe r : ReRecipeCreators.instance.recipestorage.getRecipes().values())
 			recipes.add(r.getRecipe());
-		RecipeCreator.instance.reciperegistrar.setRecipes(recipes);
+		ReRecipeCreators.instance.reciperegistrar.setRecipes(recipes);
 		output.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Done Loading Recipe Files! ("+recipes.size()+" Recipes)");
 	}
 
 	public static void add(final ChatOutput output, final String name, final SerializedRecipe recipe) {
-		if (RecipeCreator.instance.recipestorage.getRecipe(name)!=null) {
+		if (ReRecipeCreators.instance.recipestorage.getRecipe(name)!=null) {
 			output.sendMessage(ChatColor.RED+"A recipe with that name already exists");
 			return;
 		}
 
-		RecipeCreator.instance.recipestorage.putRecipe(name, recipe);
-		RecipeCreator.instance.reciperegistrar.addRecipe(recipe.getRecipe());
+		ReRecipeCreators.instance.recipestorage.putRecipe(name, recipe);
+		ReRecipeCreators.instance.reciperegistrar.addRecipe(recipe.getRecipe());
 
 		output.sendMessage(ChatColor.GREEN+"Shapeless recipe '"+name+"' created");
 	}
 
 	public static boolean removeRecipe(final ChatOutput output, final String name) {
-		final Recipe remove = RecipeCreator.instance.recipestorage.getRecipe(name).getRecipe();
+		final Recipe remove = ReRecipeCreators.instance.recipestorage.getRecipe(name).getRecipe();
 		if (remove!=null)
-			if (RecipeCreator.instance.recipestorage.removeRecipe(name)) {
-				RecipeCreator.instance.reciperegistrar.removeRecipe(remove);
+			if (ReRecipeCreators.instance.recipestorage.removeRecipe(name)) {
+				ReRecipeCreators.instance.reciperegistrar.removeRecipe(remove);
 				return true;
 			}
 		return false;

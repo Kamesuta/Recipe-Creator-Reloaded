@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator;
+package net.teamfruit.rerecipecreators;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -21,17 +21,18 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder;
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.RecipeIngredients;
-import com.fiscalleti.recipecreator.Recipes.RecipeBuilder.RecipeResult;
-import com.fiscalleti.recipecreator.serialization.RecipeStorage;
-import com.fiscalleti.recipecreator.serialization.SerializedRecipe;
-import com.fiscalleti.recipecreator.serialization.SerializedRecipe.RecipeType;
 import com.google.common.collect.Lists;
 
-public class RecipeCreator extends JavaPlugin {
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder;
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.RecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.RecipeResult;
+import net.teamfruit.rerecipecreators.serialization.RecipeStorage;
+import net.teamfruit.rerecipecreators.serialization.SerializedRecipe;
+import net.teamfruit.rerecipecreators.serialization.SerializedRecipe.RecipeType;
 
-	public static RecipeCreator instance;
+public class ReRecipeCreators extends JavaPlugin {
+
+	public static ReRecipeCreators instance;
 	public Logger log;
 	public ConsoleCommandSender console;
 	public Events events;
@@ -75,7 +76,7 @@ public class RecipeCreator extends JavaPlugin {
 
 		if (args.length<1) {
 			// /recipe
-			sender.sendMessage(ChatColor.YELLOW+"--------- "+ChatColor.GREEN+"Recipe Creator"+ChatColor.YELLOW+" ---------");
+			sender.sendMessage(ChatColor.YELLOW+"--------- "+ChatColor.GREEN+"Re: RecipeCreators"+ChatColor.YELLOW+" ---------");
 			sender.sendMessage(ChatColor.GREEN+getDescription().getDescription());
 			sender.sendMessage(ChatColor.YELLOW+"Author: "+ChatColor.GREEN+getDescription().getAuthors().get(0));
 			sender.sendMessage(ChatColor.YELLOW+"Version: "+ChatColor.GREEN+getDescription().getVersion());
@@ -88,21 +89,19 @@ public class RecipeCreator extends JavaPlugin {
 			sender.sendMessage(ChatColor.YELLOW+"--------- "+ChatColor.GREEN+"Recipe Creator"+ChatColor.YELLOW+" ---------");
 			sender.sendMessage(ChatColor.GRAY+"Recipe Creator Commands");
 			if (
-				hasPermission(sender, "recipecreator.add.shaped")||hasPermission(sender, "recipecreator.add.shaped.trim")||
-						hasPermission(sender, "recipecreator.add.shapeless")||hasPermission(sender, "recipecreator.add.furnace")
+				hasPermission(sender, "rerecipecreators.add.shaped")||hasPermission(sender, "rerecipecreators.add.shaped.trim")||
+						hasPermission(sender, "rerecipecreators.add.shapeless")||hasPermission(sender, "rerecipecreators.add.furnace")
 			)
 				sender.sendMessage(ChatColor.GOLD+"/recipe add <shaped/shaped_trim/shapeless/furnace> <recipe-name>: "+ChatColor.WHITE+"Addes a recipe to the game");
-			if (hasPermission(sender, "recipecreator.remove"))
+			if (hasPermission(sender, "rerecipecreators.remove"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe remove <recipe-name>: "+ChatColor.WHITE+"Removes a recipe from the game");
-			if (hasPermission(sender, "recipecreator.info"))
+			if (hasPermission(sender, "rerecipecreators.info"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe info <recipe-name>: "+ChatColor.WHITE+"Retrieves a recipes information");
-			if (hasPermission(sender, "recipecreator.lookup"))
+			if (hasPermission(sender, "rerecipecreators.lookup"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe lookup [result/ingredient/recipe]: "+ChatColor.WHITE+"Retrieves an items Recipe ID's");
-			if (hasPermission(sender, "recipecreator.reset"))
-				sender.sendMessage(ChatColor.GOLD+"/recipe reset: "+ChatColor.WHITE+"Resets the recipes to default");
-			if (hasPermission(sender, "recipecreator.reload"))
+			if (hasPermission(sender, "rerecipecreators.reload"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe reload: "+ChatColor.WHITE+"Reloads the recipes");
-			if (hasPermission(sender, "recipecreator.permissioncontrol"))
+			if (hasPermission(sender, "rerecipecreators.permissioncontrol"))
 				sender.sendMessage(ChatColor.GOLD+"/recipe permissions <enable/disable>: "+ChatColor.WHITE+"Enabled or disables crafting permissions");
 			return true;
 		}
@@ -119,7 +118,7 @@ public class RecipeCreator extends JavaPlugin {
 				final String name = args[2];
 
 				if (type.equalsIgnoreCase("shapeless")) {
-					if (!hasPermission(player, "recipecreator.add.shapeless")) {
+					if (!hasPermission(player, "rerecipecreators.add.shapeless")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
@@ -133,7 +132,7 @@ public class RecipeCreator extends JavaPlugin {
 				}
 
 				if (type.equalsIgnoreCase("shaped")) {
-					if (!hasPermission(player, "recipecreator.add.shaped")) {
+					if (!hasPermission(player, "rerecipecreators.add.shaped")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
@@ -147,7 +146,7 @@ public class RecipeCreator extends JavaPlugin {
 				}
 
 				if (type.equalsIgnoreCase("shaped_trim")) {
-					if (!hasPermission(player, "recipecreator.add.shaped.trim")) {
+					if (!hasPermission(player, "rerecipecreators.add.shaped.trim")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
@@ -161,7 +160,7 @@ public class RecipeCreator extends JavaPlugin {
 				}
 
 				if (type.equalsIgnoreCase("furnace")) {
-					if (!hasPermission(player, "recipecreator.add.furnace")) {
+					if (!hasPermission(player, "rerecipecreators.add.furnace")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
@@ -180,7 +179,7 @@ public class RecipeCreator extends JavaPlugin {
 		}
 
 		if (args[0].equalsIgnoreCase("remove")) {
-			if (!hasPermission(sender, "recipecreator.remove")) {
+			if (!hasPermission(sender, "rerecipecreators.remove")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
@@ -207,7 +206,7 @@ public class RecipeCreator extends JavaPlugin {
 			}
 			final Player player = (Player) sender;
 
-			if (!hasPermission(sender, "recipecreator.lookup")) {
+			if (!hasPermission(sender, "rerecipecreators.lookup")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
@@ -224,7 +223,7 @@ public class RecipeCreator extends JavaPlugin {
 
 				if (type.equalsIgnoreCase("result")) {
 					final ItemStack playerItemStack = player.getInventory().getItem(17);
-					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
 						final ItemStack itemStack = entry.getValue().getRecipe().getResult();
 						if (playerItemStack!=null&&playerItemStack.equals(itemStack))
 							rets.add(entry.getKey());
@@ -251,7 +250,7 @@ public class RecipeCreator extends JavaPlugin {
 					}
 
 					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
-					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
 						final SerializedRecipe recipe0 = entry.getValue();
 						if (recipe0==null)
 							continue;
@@ -287,7 +286,7 @@ public class RecipeCreator extends JavaPlugin {
 
 					final RecipeResult result = recipebuilder.toResult();
 					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
-					for (final Entry<String, SerializedRecipe> entry : RecipeCreator.instance.recipestorage.getRecipes().entrySet()) {
+					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
 						final SerializedRecipe recipe0 = entry.getValue();
 						if (recipe0==null)
 							continue;
@@ -304,7 +303,7 @@ public class RecipeCreator extends JavaPlugin {
 					return true;
 				}
 			} else
-				rets.addAll(RecipeCreator.instance.recipestorage.getRecipes().keySet());
+				rets.addAll(ReRecipeCreators.instance.recipestorage.getRecipes().keySet());
 
 			if (rets.size()<1) {
 				sender.sendMessage(ChatColor.RED+"No recipes found");
@@ -319,7 +318,7 @@ public class RecipeCreator extends JavaPlugin {
 		}
 
 		if (args[0].equalsIgnoreCase("info")) {
-			if (!hasPermission(sender, "recipecreator.info")) {
+			if (!hasPermission(sender, "rerecipecreators.info")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
@@ -331,7 +330,7 @@ public class RecipeCreator extends JavaPlugin {
 			final String name = args[1];
 
 			//53 max
-			final SerializedRecipe recipe = RecipeCreator.instance.recipestorage.getRecipe(name);
+			final SerializedRecipe recipe = ReRecipeCreators.instance.recipestorage.getRecipe(name);
 			if (recipe==null) {
 				sender.sendMessage(ChatColor.RED+"No recipes found");
 				return true;
@@ -383,12 +382,12 @@ public class RecipeCreator extends JavaPlugin {
 					}
 			sender.sendMessage(ChatColor.YELLOW+"Ingredients: "+ChatColor.GREEN+ing);
 			*/
-			sender.sendMessage(ChatColor.YELLOW+"Permission: "+ChatColor.GREEN+"recipecreator.recipes."+name);
+			sender.sendMessage(ChatColor.YELLOW+"Permission: "+ChatColor.GREEN+"rerecipecreators.recipes."+name);
 			return true;
 		}
 
 		if (args[0].equalsIgnoreCase("reload")) {
-			if (!hasPermission(sender, "recipecreator.reload")) {
+			if (!hasPermission(sender, "rerecipecreators.reload")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
@@ -397,16 +396,8 @@ public class RecipeCreator extends JavaPlugin {
 			return true;
 		}
 
-		if (args[0].equalsIgnoreCase("reset")) {
-			if (!hasPermission(sender, "recipecreator.reset")) {
-				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
-				return true;
-			}
-			return true;
-		}
-
 		if (args[0].equalsIgnoreCase("permissions")) {
-			if (!hasPermission(sender, "recipecreator.permissioncontrol")) {
+			if (!hasPermission(sender, "rerecipecreators.permissioncontrol")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
@@ -419,12 +410,12 @@ public class RecipeCreator extends JavaPlugin {
 			if (args[1].equalsIgnoreCase("enable")) {
 				getConfig().set("Permissions-Enabled", true);
 				saveConfig();
-				sender.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Permissions "+ChatColor.GREEN+"enabled!");
+				sender.sendMessage(ChatColor.YELLOW+"[Re:RecipeCreators] Permissions "+ChatColor.GREEN+"enabled!");
 			}
 			if (args[1].equalsIgnoreCase("disable")) {
 				getConfig().set("Permissions-Enabled", false);
 				saveConfig();
-				sender.sendMessage(ChatColor.YELLOW+"[RecipeCreator] Permissions "+ChatColor.RED+"disabled!");
+				sender.sendMessage(ChatColor.YELLOW+"[Re:RecipeCreators] Permissions "+ChatColor.RED+"disabled!");
 			}
 			return true;
 		}

@@ -1,4 +1,4 @@
-package com.fiscalleti.recipecreator.serialization;
+package net.teamfruit.rerecipecreators.serialization;
 
 import static com.google.gson.stream.JsonToken.*;
 
