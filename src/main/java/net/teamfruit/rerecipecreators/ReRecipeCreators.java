@@ -214,8 +214,8 @@ public class ReRecipeCreators extends JavaPlugin {
 			final List<String> rets = Lists.newArrayList();
 
 			if (args.length>1) {
-				if ("".isEmpty()) {
-					sender.sendMessage(ChatColor.RED+"This feature is not implemented.i");
+				if (!"".isEmpty()) {
+					sender.sendMessage(ChatColor.RED+"This feature is not implemented.");
 					return true;
 				}
 

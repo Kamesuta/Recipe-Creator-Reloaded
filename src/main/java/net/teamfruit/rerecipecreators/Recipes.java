@@ -17,8 +17,10 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 
 import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients;
@@ -239,17 +241,9 @@ public class Recipes {
 						if (other.ingredients!=null)
 							return false;
 					} else {
-						final List<MaterialData> list0 = getIngredients();
-						final List<MaterialData> list1 = other.getIngredients();
-						final int list0size = list0.size();
-						if (list0size!=list1.size())
-							return false;
-						for (int i = 0; i<list0size; i++) {
-							final MaterialData item10 = list0.get(i);
-							final MaterialData item11 = list1.get(i);
-							if (item10.equals(item11))
-								return false;
-						}
+						final Multiset<MaterialData> list0 = HashMultiset.create(getIngredients());
+						final Multiset<MaterialData> list1 = HashMultiset.create(other.getIngredients());
+						return list0.equals(list1);
 					}
 					return true;
 				}
@@ -416,7 +410,9 @@ public class Recipes {
 							for (int j = 0; j<shape10.length; j++) {
 								final MaterialData item10 = map0.get(shape10[j]);
 								final MaterialData item11 = map1.get(shape11[j]);
-								if (item10.equals(item11))
+								if (item10!=null&&item11==null||item10==null&&item11!=null)
+									return false;
+								if (item10!=null&&item11!=null&&!item10.equals(item11))
 									return false;
 							}
 						}
