@@ -597,4 +597,49 @@ public class Recipes {
 			}
 		return false;
 	}
+
+	public static boolean recipeEquals(final Recipe recipe1, final Recipe recipe2) {
+		return resultEquals(recipe1, recipe2)&&ingredientEquals(recipe1, recipe2);
+	}
+
+	public static boolean resultEquals(final Recipe recipe1, final Recipe recipe2) {
+		if (recipe1==recipe2)
+			return true;
+		if (recipe1==null&&recipe2==null)
+			return true;
+		if (recipe1==null||recipe2==null)
+			return false;
+		if (recipe1.getResult().isSimilar(recipe2.getResult()))
+			return true;
+		return false;
+	}
+
+	public static boolean ingredientEquals(final Recipe recipe1, final Recipe recipe2) {
+		if (recipe1==recipe2)
+			return true;
+		if (recipe1==null&&recipe2==null)
+			return true;
+		if (recipe1==null||recipe2==null)
+			return false;
+		if (recipe1 instanceof ShapedRecipe&&recipe2 instanceof ShapedRecipe) {
+			final Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients ing1 = new Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients();
+			ing1.fromRecipe((ShapedRecipe) recipe1);
+			final Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients ing2 = new Recipes.RecipeBuilder.ShapedRecipeBuilder.ShapedRecipeIngredients();
+			ing2.fromRecipe((ShapedRecipe) recipe2);
+			return ing1.equals(ing2);
+		} else if (recipe1 instanceof ShapelessRecipe&&recipe2 instanceof ShapelessRecipe) {
+			final Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients ing1 = new Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients();
+			ing1.fromRecipe((ShapelessRecipe) recipe1);
+			final Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients ing2 = new Recipes.RecipeBuilder.ShapelessRecipeBuilder.ShapelessRecipeIngredients();
+			ing2.fromRecipe((ShapelessRecipe) recipe2);
+			return ing1.equals(ing2);
+		} else if (recipe1 instanceof FurnaceRecipe&&recipe2 instanceof FurnaceRecipe) {
+			final Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients ing1 = new Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients();
+			ing1.fromRecipe((FurnaceRecipe) recipe1);
+			final Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients ing2 = new Recipes.RecipeBuilder.FurnaceRecipeBuilder.FurnaceRecipeIngredients();
+			ing2.fromRecipe((FurnaceRecipe) recipe2);
+			return ing1.equals(ing2);
+		}
+		return false;
+	}
 }

@@ -15,6 +15,7 @@ import org.bukkit.inventory.Recipe;
 import com.google.common.collect.Maps;
 
 import net.teamfruit.rerecipecreators.ReRecipeCreators;
+import net.teamfruit.rerecipecreators.Recipes;
 
 public class RecipeStorage {
 	private final FilenameFilter recipefilefilter = new FilenameFilter() {
@@ -66,21 +67,28 @@ public class RecipeStorage {
 	}
 
 	public String getIDFromResult(final ItemStack result) {
-		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet())
-			if (entry.getValue().getRecipe().getResult().isSimilar(result))
-				return entry.getKey();
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet()) {
+			final SerializedRecipe sRecipe = entry.getValue();
+			if (sRecipe!=null) {
+				final Recipe recipe = sRecipe.getRecipe();
+				if (recipe!=null&&recipe.getResult().isSimilar(result))
+					return entry.getKey();
+			}
+		}
 		return null;
 	}
 
 	public String getIDFromRecipe(final Recipe recipe) {
-		return getIDFromSerializedRecipe(SerializedRecipe.fromRecipe(recipe));
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet()) {
+			final SerializedRecipe sRecipe = entry.getValue();
+			if (sRecipe!=null&&Recipes.recipeEquals(recipe, sRecipe.getRecipe()))
+				return entry.getKey();
+		}
+		return null;
 	}
 
 	public String getIDFromSerializedRecipe(final SerializedRecipe recipe) {
-		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet())
-			if (SerializedRecipe.recipeEquals(recipe, entry.getValue()))
-				return entry.getKey();
-		return null;
+		return getIDFromRecipe(recipe.getRecipe());
 	}
 
 	private File toLocation(final String name) {

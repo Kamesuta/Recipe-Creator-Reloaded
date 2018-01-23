@@ -87,10 +87,12 @@ public class SerializedRecipe implements Serializable {
 		return null;
 	}
 
+	@Deprecated
 	public static boolean recipeEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
 		return resultEquals(recipe0, recipe1)&&ingredientEquals(recipe0, recipe1);
 	}
 
+	@Deprecated
 	public static boolean resultEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
 		if (recipe0==recipe1||recipe0==null&&recipe1==null)
 			return true;
@@ -105,6 +107,7 @@ public class SerializedRecipe implements Serializable {
 		return item0.equals(item1);
 	}
 
+	@Deprecated
 	public static boolean ingredientEquals(final SerializedRecipe recipe0, final SerializedRecipe recipe1) {
 		if (recipe0==recipe1||recipe0==null&&recipe1==null)
 			return true;
