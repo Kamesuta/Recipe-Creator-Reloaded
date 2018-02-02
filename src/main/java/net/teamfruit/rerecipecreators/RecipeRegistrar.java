@@ -19,6 +19,8 @@ public class RecipeRegistrar {
 
 	public void addRecipe(final Recipe recipe) {
 		this.myrecipes.add(recipe);
+		//if (!"".isEmpty())
+		//	return;
 		this.server.addRecipe(recipe);
 	}
 
@@ -35,18 +37,28 @@ public class RecipeRegistrar {
 	public void removeRecipe(final Recipe recipe) {
 		if (recipe==null)
 			return;
-		for (final Iterator<Recipe> itr = this.server.recipeIterator(); itr.hasNext();) {
+		for (final Iterator<Recipe> itr = this.myrecipes.iterator(); itr.hasNext();) {
 			final Recipe itrecipe = itr.next();
 			if (Recipes.recipeEquals(recipe, itrecipe))
+				itr.remove();
+		}
+		//if (!"".isEmpty())
+		//	return;
+		for (final Iterator<Recipe> itr = this.server.recipeIterator(); itr.hasNext();) {
+			final Recipe itrecipe = itr.next();
+			if (Recipes.ingredientEquals(recipe, itrecipe))
 				itr.remove();
 		}
 	}
 
 	public void clearRecipe() {
+		this.myrecipes.clear();
+		//if (!"".isEmpty())
+		//	return;
 		for (final Iterator<Recipe> itr = this.server.recipeIterator(); itr.hasNext();) {
 			final Recipe itrecipe = itr.next();
 			for (final Recipe myrecipe : this.myrecipes)
-				if (Recipes.recipeEquals(myrecipe, itrecipe))
+				if (Recipes.ingredientEquals(myrecipe, itrecipe))
 					itr.remove();
 		}
 	}

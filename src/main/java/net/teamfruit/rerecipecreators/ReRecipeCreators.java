@@ -1,8 +1,10 @@
 package net.teamfruit.rerecipecreators;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -14,6 +16,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -23,14 +26,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.google.common.collect.Lists;
 
-import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder;
-import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.RecipeIngredients;
-import net.teamfruit.rerecipecreators.Recipes.RecipeBuilder.RecipeResult;
+import net.teamfruit.rerecipecreators.Recipes.CustomRecipe.FurnaceCustomRecipe;
+import net.teamfruit.rerecipecreators.Recipes.CustomRecipe.ShapedCustomRecipe;
+import net.teamfruit.rerecipecreators.Recipes.CustomRecipe.ShapelessCustomRecipe;
+import net.teamfruit.rerecipecreators.Recipes.RecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeIngredients.FurnaceRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeIngredients.ShapedRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeIngredients.ShapelessRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeIngredients.TrimmedShapedRecipeIngredients;
+import net.teamfruit.rerecipecreators.Recipes.RecipeResult;
 import net.teamfruit.rerecipecreators.serialization.RecipeStorage;
 import net.teamfruit.rerecipecreators.serialization.SerializedRecipe;
-import net.teamfruit.rerecipecreators.serialization.SerializedRecipe.RecipeType;
 
 public class ReRecipeCreators extends JavaPlugin {
+	private boolean initialized;
 
 	public static ReRecipeCreators instance;
 	public Logger log;
@@ -44,7 +53,7 @@ public class ReRecipeCreators extends JavaPlugin {
 		instance = this;
 		this.log = getLogger();
 		this.console = getServer().getConsoleSender();
-		this.events = new Events();
+		this.events = new Events(this);
 		this.recipestorage = RecipeStorage.createRecipesStorage(getDataFolder());
 		this.reciperegistrar = new RecipeRegistrar(getServer());
 		getConfig().options().copyDefaults(true);
@@ -54,6 +63,7 @@ public class ReRecipeCreators extends JavaPlugin {
 			getDataFolder().mkdir();
 		// getServer().clearRecipes();
 		Recipes.loadRecipes(ChatOutput.create(this.console));
+		this.initialized = true;
 	}
 
 	public static boolean hasPermission(final Permissible permissible, final String node) {
@@ -70,6 +80,10 @@ public class ReRecipeCreators extends JavaPlugin {
 
 	@Override
 	public boolean onCommand(final CommandSender sender, final Command command, final String commandLabel, final String[] args) {
+		if (!this.initialized) {
+			sender.sendMessage("Re:RecipeCreators is not available");
+			return true;
+		}
 
 		if (!commandLabel.equalsIgnoreCase("recipe"))
 			return true;
@@ -112,22 +126,28 @@ public class ReRecipeCreators extends JavaPlugin {
 				return true;
 			}
 			final Player player = (Player) sender;
+			final PlayerInventory playerinv = player.getInventory();
 
 			if (args.length>2) {
 				final String type = args[1];
 				final String name = args[2];
+				final String[] alias = Arrays.copyOfRange(args, 3, args.length);
 
 				if (type.equalsIgnoreCase("shapeless")) {
 					if (!hasPermission(player, "rerecipecreators.add.shapeless")) {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					final SerializedRecipe recipe = new RecipeBuilder.ShapelessRecipeBuilder(player).toSerializedRecipe();
+					final ShapelessRecipeIngredients ingredients = new ShapelessRecipeIngredients();
+					ingredients.fromInventoryItem(playerinv);
+					final RecipeResult result = new RecipeResult();
+					result.fromInventoryItem(playerinv);
+					final SerializedRecipe recipe = new ShapelessCustomRecipe(ingredients, result).toSerializedRecipe();
 					if (recipe==null) {
 						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, recipe);
+					Recipes.add(ChatOutput.create(player), recipe, name, alias);
 					return true;
 				}
 
@@ -136,12 +156,16 @@ public class ReRecipeCreators extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					final SerializedRecipe recipe = new RecipeBuilder.ShapedRecipeBuilder(player).toSerializedRecipe();
+					final ShapedRecipeIngredients ingredients = new ShapedRecipeIngredients();
+					ingredients.fromInventoryItem(playerinv);
+					final RecipeResult result = new RecipeResult();
+					result.fromInventoryItem(playerinv);
+					final SerializedRecipe recipe = new ShapedCustomRecipe(ingredients, result).toSerializedRecipe();
 					if (recipe==null) {
 						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, recipe);
+					Recipes.add(ChatOutput.create(player), recipe, name, alias);
 					return true;
 				}
 
@@ -150,12 +174,16 @@ public class ReRecipeCreators extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					final SerializedRecipe recipe = new RecipeBuilder.TrimmedShapedRecipeBuilder(player).toSerializedRecipe();
+					final ShapedRecipeIngredients ingredients = new TrimmedShapedRecipeIngredients();
+					ingredients.fromInventoryItem(playerinv);
+					final RecipeResult result = new RecipeResult();
+					result.fromInventoryItem(playerinv);
+					final SerializedRecipe recipe = new ShapedCustomRecipe(ingredients, result).toSerializedRecipe();
 					if (recipe==null) {
 						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, recipe);
+					Recipes.add(ChatOutput.create(player), recipe, name, alias);
 					return true;
 				}
 
@@ -164,17 +192,21 @@ public class ReRecipeCreators extends JavaPlugin {
 						player.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 						return true;
 					}
-					final SerializedRecipe recipe = new RecipeBuilder.FurnaceRecipeBuilder(player).toSerializedRecipe();
+					final FurnaceRecipeIngredients ingredients = new FurnaceRecipeIngredients();
+					ingredients.fromInventoryItem(playerinv);
+					final RecipeResult result = new RecipeResult();
+					result.fromInventoryItem(playerinv);
+					final SerializedRecipe recipe = new FurnaceCustomRecipe(ingredients, result).toSerializedRecipe();
 					if (recipe==null) {
 						player.sendMessage(ChatColor.RED+"Invalid Recipe.");
 						return true;
 					}
-					Recipes.add(ChatOutput.create(player), name, recipe);
+					Recipes.add(ChatOutput.create(player), recipe, name, alias);
 					return true;
 				}
 			}
 
-			player.sendMessage(ChatColor.RED+"Usage: /recipe add <shaped/shaped_trim/shapeless/furnace> <name>");
+			player.sendMessage(ChatColor.RED+"Usage: /recipe add <shaped/shaped_trim/shapeless/furnace> <name> [alias1] [alias2]...");
 			return true;
 		}
 
@@ -199,12 +231,64 @@ public class ReRecipeCreators extends JavaPlugin {
 
 		}
 
-		if (args[0].equalsIgnoreCase("lookup")) {
-			if (!(sender instanceof Player)) {
-				sender.sendMessage(ChatColor.RED+"That command must be used in game");
+		if (args[0].equalsIgnoreCase("alias")) {
+			if (!hasPermission(sender, "rerecipecreators.lookup")) {
+				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}
-			final Player player = (Player) sender;
+
+			if (args.length>1) {
+				final String type = args[1];
+
+				if (type.equalsIgnoreCase("add")) {
+					if (args.length<=2) {
+						sender.sendMessage(ChatColor.RED+"/recipe alias add <name> <alias1> <alias2>...");
+						return true;
+					}
+					final String name = args[2];
+					final String[] alias = Arrays.copyOfRange(args, 3, args.length);
+
+					final SerializedRecipe recipe = ReRecipeCreators.instance.recipestorage.getRecipe(name);
+					if (recipe==null) {
+						sender.sendMessage(ChatColor.RED+"No recipes found");
+						return true;
+					}
+
+					if (alias.length>0) {
+						recipe.getAlias().addAll(Arrays.asList(alias));
+						ReRecipeCreators.instance.recipestorage.putRecipe(name, recipe);
+					}
+
+					sender.sendMessage(ChatColor.YELLOW+"Recipe alias changed");
+					return true;
+				} else if (type.equalsIgnoreCase("remove")) {
+					if (args.length<=2) {
+						sender.sendMessage(ChatColor.RED+"/recipe alias add <name> <alias1> <alias2>...");
+						return true;
+					}
+					final String name = args[2];
+					final String[] alias = Arrays.copyOfRange(args, 3, args.length);
+
+					final SerializedRecipe recipe = ReRecipeCreators.instance.recipestorage.getRecipe(name);
+					if (recipe==null) {
+						sender.sendMessage(ChatColor.RED+"No recipes found");
+						return true;
+					}
+
+					if (alias.length>0) {
+						recipe.getAlias().removeAll(Arrays.asList(alias));
+						ReRecipeCreators.instance.recipestorage.putRecipe(name, recipe);
+					}
+
+					sender.sendMessage(ChatColor.YELLOW+"Recipe alias changed");
+					return true;
+				}
+
+			}
+
+		}
+
+		if (args[0].equalsIgnoreCase("lookup")) {
 
 			if (!hasPermission(sender, "rerecipecreators.lookup")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
@@ -221,40 +305,80 @@ public class ReRecipeCreators extends JavaPlugin {
 
 				final String type = args[1];
 
-				if (type.equalsIgnoreCase("result")) {
-					final ItemStack playerItemStack = player.getInventory().getItem(17);
+				if (type.equalsIgnoreCase("alias")) {
+					if (args.length<=2) {
+						sender.sendMessage(ChatColor.RED+"/recipe lookup alias <name/alias>");
+						return true;
+					}
+					final String argument = args[2];
+
 					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
-						final ItemStack itemStack = entry.getValue().getRecipe().getResult();
-						if (playerItemStack!=null&&playerItemStack.equals(itemStack))
-							rets.add(entry.getKey());
+						final String name = entry.getKey();
+						if (name.equals(argument))
+							rets.add(name);
+						else {
+							final Set<String> alias = entry.getValue().getAlias();
+							if (alias.contains(name))
+								rets.add(name);
+						}
+					}
+				} else if (type.equalsIgnoreCase("result")) {
+					if (!(sender instanceof Player)) {
+						sender.sendMessage(ChatColor.RED+"That command must be used in game");
+						return true;
+					}
+					final Player player = (Player) sender;
+					final PlayerInventory playerinv = player.getInventory();
+
+					final RecipeResult result = new RecipeResult();
+					result.fromInventoryItem(player.getInventory());
+					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
+						final String name = entry.getKey();
+						final SerializedRecipe srecipe = entry.getValue();
+						final ItemStack itemStack1 = srecipe.getCraftResult();
+						if (Objects.equals(result.getCraftResult(), itemStack1))
+							rets.add(name);
+						else {
+							final ItemStack itemStack2 = srecipe.getRecipe().getResult();
+							if (Objects.equals(result.getResult(), itemStack2))
+								rets.add(name);
+						}
 					}
 				} else if (type.equalsIgnoreCase("ingredient")) {
+					if (!(sender instanceof Player)) {
+						sender.sendMessage(ChatColor.RED+"That command must be used in game");
+						return true;
+					}
+					final Player player = (Player) sender;
+					final PlayerInventory playerinv = player.getInventory();
+
 					if (args.length<=2) {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup ingredient <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
 					final String argument = args[2];
 
-					RecipeBuilder recipebuilder;
+					RecipeIngredients<?> ingredients;
 					if (argument.equalsIgnoreCase("shapeless"))
-						recipebuilder = new RecipeBuilder.ShapelessRecipeBuilder(player);
+						ingredients = new ShapelessRecipeIngredients();
 					else if (argument.equalsIgnoreCase("shaped"))
-						recipebuilder = new RecipeBuilder.ShapedRecipeBuilder(player);
+						ingredients = new ShapedRecipeIngredients();
 					else if (argument.equalsIgnoreCase("shaped_trim"))
-						recipebuilder = new RecipeBuilder.TrimmedShapedRecipeBuilder(player);
+						ingredients = new TrimmedShapedRecipeIngredients();
 					else if (argument.equalsIgnoreCase("furnace"))
-						recipebuilder = new RecipeBuilder.FurnaceRecipeBuilder(player);
+						ingredients = new FurnaceRecipeIngredients();
 					else {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup ingredient <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
 
-					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
+					ingredients.fromInventoryItem(playerinv);
+
 					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
 						final SerializedRecipe recipe0 = entry.getValue();
 						if (recipe0==null)
 							continue;
-						if (recipe0.getType()!=recipebuilder.toSerializedRecipe().getType())
+						if (RecipeType.fromRecipe(recipe0.getRecipe())!=ingredients.getType())
 							continue;
 						final Recipe recipe1 = recipe0.getRecipe();
 						if (recipe1==null)
@@ -264,28 +388,37 @@ public class ReRecipeCreators extends JavaPlugin {
 							rets.add(entry.getKey());
 					}
 				} else if (type.equalsIgnoreCase("recipe")) {
+					if (!(sender instanceof Player)) {
+						sender.sendMessage(ChatColor.RED+"That command must be used in game");
+						return true;
+					}
+					final Player player = (Player) sender;
+					final PlayerInventory playerinv = player.getInventory();
+
 					if (args.length<=2) {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup recipe <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
 					final String argument = args[2];
 
-					RecipeBuilder recipebuilder;
+					RecipeIngredients<?> ingredients;
 					if (argument.equalsIgnoreCase("shapeless"))
-						recipebuilder = new RecipeBuilder.ShapelessRecipeBuilder(player);
+						ingredients = new ShapelessRecipeIngredients();
 					else if (argument.equalsIgnoreCase("shaped"))
-						recipebuilder = new RecipeBuilder.ShapedRecipeBuilder(player);
+						ingredients = new ShapedRecipeIngredients();
 					else if (argument.equalsIgnoreCase("shaped_trim"))
-						recipebuilder = new RecipeBuilder.TrimmedShapedRecipeBuilder(player);
+						ingredients = new TrimmedShapedRecipeIngredients();
 					else if (argument.equalsIgnoreCase("furnace"))
-						recipebuilder = new RecipeBuilder.FurnaceRecipeBuilder(player);
+						ingredients = new FurnaceRecipeIngredients();
 					else {
 						sender.sendMessage(ChatColor.RED+"/recipe lookup ingredient <shaped/shaped_trim/shapeless/furnace>");
 						return true;
 					}
+					final RecipeResult result = new RecipeResult();
 
-					final RecipeResult result = recipebuilder.toResult();
-					final RecipeIngredients<?> ingredients = recipebuilder.toIngredients();
+					ingredients.fromInventoryItem(playerinv);
+					result.fromInventoryItem(playerinv);
+
 					for (final Entry<String, SerializedRecipe> entry : ReRecipeCreators.instance.recipestorage.getRecipes().entrySet()) {
 						final SerializedRecipe recipe0 = entry.getValue();
 						if (recipe0==null)
@@ -293,13 +426,14 @@ public class ReRecipeCreators extends JavaPlugin {
 						final Recipe recipe1 = recipe0.getRecipe();
 						if (recipe1==null)
 							continue;
-						final RecipeResult result1 = RecipeResult.createFromRecipe(recipe1);
+						final RecipeResult result1 = new RecipeResult();
+						result1.fromRecipe(recipe1);
 						final RecipeIngredients<?> ingredients1 = RecipeIngredients.createFromRecipe(recipe1);
 						if (Objects.equals(result, result1)&&Objects.equals(ingredients, ingredients1))
 							rets.add(entry.getKey());
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED+"/recipe lookup [result/ingredient/recipe]");
+					sender.sendMessage(ChatColor.RED+"/recipe lookup [result/ingredient/recipe/alias]");
 					return true;
 				}
 			} else
@@ -329,7 +463,6 @@ public class ReRecipeCreators extends JavaPlugin {
 			}
 			final String name = args[1];
 
-			//53 max
 			final SerializedRecipe recipe = ReRecipeCreators.instance.recipestorage.getRecipe(name);
 			if (recipe==null) {
 				sender.sendMessage(ChatColor.RED+"No recipes found");
@@ -338,10 +471,16 @@ public class ReRecipeCreators extends JavaPlugin {
 
 			sender.sendMessage("");
 			sender.sendMessage(ChatColor.GREEN+"Recipe info for recipe ID '"+ChatColor.YELLOW+args[1]+ChatColor.GREEN+"'");
-			final ItemStack itemStack = recipe.getRecipe().getResult();
-			sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+itemStack.getType().name()+" x "+itemStack.getAmount()+"] "+(itemStack.getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
+			sender.sendMessage(ChatColor.GREEN+"Aliases: "+ChatColor.YELLOW+recipe.getAlias());
+			final ItemStack itemStack = recipe.getCraftResult();
+			if (itemStack!=null)
+				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GREEN+"["+itemStack.getType().name()+" x "+itemStack.getAmount()+"] "+(itemStack.getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
+			else
+				sender.sendMessage(ChatColor.YELLOW+"Output: "+ChatColor.GRAY+"Default");
+			final ItemStack itemStackAuto = recipe.getRecipe().getResult();
+			sender.sendMessage(ChatColor.YELLOW+"AutoCraft Output: "+ChatColor.GREEN+"["+itemStackAuto.getType().name()+" x "+itemStackAuto.getAmount()+"] "+(itemStackAuto.getEnchantments().size()>0 ? ChatColor.BLUE+"[ENCHANTED]" : ""));
 
-			final RecipeType type = recipe.getType();
+			final RecipeType type = RecipeType.fromRecipe(recipe.getRecipe());
 			final Recipe recipe0 = recipe.getRecipe();
 			sender.sendMessage(ChatColor.YELLOW+"Type: "+ChatColor.GREEN+type.name);
 			switch (type) {
@@ -353,8 +492,11 @@ public class ReRecipeCreators extends JavaPlugin {
 					sender.sendMessage(ChatColor.YELLOW+"Ingredients:");
 					for (final Entry<Character, ItemStack> entry : recipe1.getIngredientMap().entrySet()) {
 						final Character key = entry.getKey();
-						final MaterialData data = entry.getValue().getData();
-						sender.sendMessage("  "+ChatColor.GREEN+"["+key+"]"+ChatColor.GRAY+" : "+ChatColor.DARK_GREEN+data);
+						final ItemStack item = entry.getValue();
+						if (item!=null) {
+							final MaterialData data = item.getData();
+							sender.sendMessage("  "+ChatColor.GREEN+"["+key+"]"+ChatColor.GRAY+" : "+ChatColor.DARK_GREEN+data);
+						}
 					}
 					break;
 				case SHAPELESS:

@@ -9,6 +9,8 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
@@ -87,8 +89,22 @@ public class RecipeStorage {
 		return null;
 	}
 
-	public String getIDFromSerializedRecipe(final SerializedRecipe recipe) {
-		return getIDFromRecipe(recipe.getRecipe());
+	public Pair<String, SerializedRecipe> getFromIngredients(final Recipe recipe) {
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet()) {
+			final SerializedRecipe sRecipe = entry.getValue();
+			if (sRecipe!=null&&Recipes.ingredientEquals(recipe, sRecipe.getRecipe()))
+				return Pair.of(entry.getKey(), entry.getValue());
+		}
+		return null;
+	}
+
+	public Pair<String, SerializedRecipe> getFromIngredients(final CraftingInventory recipe) {
+		for (final Entry<String, SerializedRecipe> entry : this.recipes.entrySet()) {
+			final SerializedRecipe sRecipe = entry.getValue();
+			if (sRecipe!=null&&Recipes.ingredientEquals(sRecipe.getRecipe(), recipe))
+				return Pair.of(entry.getKey(), entry.getValue());
+		}
+		return null;
 	}
 
 	private File toLocation(final String name) {
@@ -104,7 +120,7 @@ public class RecipeStorage {
 			ObjectHandler.write(file, SerializedRecipe.class, recipe);
 			return true;
 		} catch (final Exception e) {
-			ReRecipeCreators.instance.log.log(Level.WARNING, e.getMessage(), e);
+			ReRecipeCreators.instance.log.log(Level.WARNING, "Could not save recipe file '"+file.getName()+"': ", e);
 		}
 		return false;
 	}
@@ -117,7 +133,7 @@ public class RecipeStorage {
 		try {
 			return ObjectHandler.read(file, SerializedRecipe.class);
 		} catch (final Exception e) {
-			ReRecipeCreators.instance.log.log(Level.WARNING, e.getMessage(), e);
+			ReRecipeCreators.instance.log.log(Level.WARNING, "Could not load recipe file '"+file.getName()+"': ", e);
 		}
 		return null;
 	}
