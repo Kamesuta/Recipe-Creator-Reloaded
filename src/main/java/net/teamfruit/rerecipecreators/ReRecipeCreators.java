@@ -232,7 +232,7 @@ public class ReRecipeCreators extends JavaPlugin {
 		}
 
 		if (args[0].equalsIgnoreCase("alias")) {
-			if (!hasPermission(sender, "rerecipecreators.lookup")) {
+			if (!hasPermission(sender, "rerecipecreators.alias")) {
 				sender.sendMessage(ChatColor.RED+"You don't have permission to do that.");
 				return true;
 			}

@@ -17,6 +17,9 @@ permissions:
     rerecipecreators.info:
         default: op
         description: retrieves a recipes information
+    rerecipecreators.alias:
+        default: op
+        description: manage alias
     rerecipecreators.lookup:
         default: op
         description: retrieves an items recipe ids
