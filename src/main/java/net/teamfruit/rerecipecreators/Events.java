@@ -68,13 +68,13 @@ public class Events implements Listener {
 	}
 
 	private boolean hasPermission(final Permissible player, final Pair<String, SerializedRecipe> name) {
-		if (!ReRecipeCreators.hasPermission(player, "rerecipecreators.recipes."+name.getLeft()))
-			return false;
+		if (ReRecipeCreators.hasPermission(player, "rerecipecreators.recipes."+name.getLeft()))
+			return true;
 		final Set<String> aliases = name.getRight().getAlias();
 		for (final String alias : aliases)
-			if (!ReRecipeCreators.hasPermission(player, "rerecipecreators.recipes."+alias))
-				return false;
-		return true;
+			if (ReRecipeCreators.hasPermission(player, "rerecipecreators.recipes."+alias))
+				return true;
+		return false;
 	}
 
 	/*
